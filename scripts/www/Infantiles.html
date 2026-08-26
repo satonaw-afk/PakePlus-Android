@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CINETUX - Streaming</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-color: #141414;
+            --text-color: #ffffff;
+            --primary-color: #e50914;
+            --secondary-color: #303030;
+            --hover-color: #b20710;
+            --favorite-color: #ff4d4d;
+            --card-width: 110px;
+            --card-height: 150px;
+        }
+
+        .light-theme {
+            --bg-color: #f4f4f4;
+            --text-color: #333333;
+            --primary-color: #e50914;
+            --secondary-color: #dddddd;
+            --hover-color: #b20710;
+            --favorite-color: #e50914;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            padding-bottom: 20px;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 15px;
+            background-color: var(--bg-color);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            top: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            height: 50px;
+            transition: all 0.3s ease;
+            gap: 10px;
+        }
+
+        .logo {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .logo-pelis { color: var(--primary-color); }
+        .logo-tux { color: grey; }
+
+        .search-container {
+            flex: 1;
+            min-width: 0;
+            max-width: 300px;
+            position: relative;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 6px 6px 6px 32px;
+            border: none;
+            border-radius: 20px;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            font-size: 0.8rem;
+            height: 32px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .content-container {
+            padding: 60px 15px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 0.95rem;
+            padding-left: 8px;
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title i {
+            color: var(--primary-color);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 14px;
+            padding: 4px 0 12px;
+        }
+
+        /* ===== ESTILO DE TARJETA IGUAL AL PRIMER CÓDIGO ===== */
+        .item {
+            flex: 0 0 auto;
+            cursor: pointer;
+            transition: transform 0.3s;
+            background: none;
+            border-radius: 8px;
+            overflow: visible;
+            box-shadow: none;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item:hover {
+            transform: scale(1.02);
+        }
+
+        .item-image-container {
+            position: relative;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            background-color: #1a1a1a;
+            aspect-ratio: 2/3;
+        }
+
+        .item-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s;
+        }
+
+        .item:hover .item-image-container img {
+            transform: scale(1.03);
+        }
+
+        .item-title {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-top: 6px;
+            text-align: center;
+            color: var(--text-color);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+            padding: 0 2px;
+        }
+
+        .item-type {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            background: var(--primary-color);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .item-rating {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(0,0,0,0.7);
+            color: #ffd700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        /* ===== FIN ESTILO TARJETA ===== */
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 200;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--primary-color);
+            background: rgba(0,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .modal-flex {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-video-container {
+            width: 100%;
+            height: 30vh;
+            position: relative;
+            background-color: #000;
+        }
+
+        .modal-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .modal-info {
+            padding: 12px 15px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .favorite-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+            transition: all 0.3s ease;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .favorite-btn.active {
+            color: var(--favorite-color);
+        }
+
+        .favorite-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .modal-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 12px;
+            font-size: 0.75rem;
+        }
+
+        .modal-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .modal-meta i {
+            color: var(--primary-color);
+        }
+
+        .genre-tags {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0 12px;
+            flex-wrap: wrap;
+        }
+
+        .genre-tag {
+            background-color: var(--secondary-color);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+        }
+
+        .modal-description {
+            margin-bottom: 0;
+            line-height: 1.4;
+            font-size: 0.85rem;
+            position: relative;
+            color: var(--text-color);
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .modal-description.collapsed {
+            max-height: 4.5em;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+        
+        .modal-description.expanded {
+            max-height: none;
+            display: block;
+            -webkit-line-clamp: unset;
+        }
+
+        .read-more-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 5px 0;
+            margin-top: 4px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+            width: fit-content;
+        }
+
+        .read-more-btn:hover {
+            opacity: 0.8;
+        }
+
+        .read-more-btn i {
+            font-size: 0.7rem;
+            transition: transform 0.3s ease;
+        }
+
+        .read-more-btn.expanded i {
+            transform: rotate(180deg);
+        }
+
+        .seasons-section {
+            margin: 12px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--secondary-color);
+        }
+
+        .seasons-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .season-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .season-btn {
+            background-color: var(--secondary-color);
+            border: none;
+            color: var(--text-color);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .season-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .season-btn i {
+            font-size: 0.7rem;
+        }
+
+        .episodes-count {
+            font-size: 0.7rem;
+            color: #aaa;
+            font-weight: 500;
+        }
+
+        .episodes-count span {
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .season-dropdown {
+            position: absolute;
+            background-color: var(--bg-color);
+            border: 1px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 10px 0;
+            min-width: 150px;
+            z-index: 50;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+            top: 45px;
+            left: 0;
+        }
+
+        .season-dropdown.show {
+            display: block;
+        }
+
+        .season-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .season-option:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .season-option.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .episodes-scroll-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 5px 0;
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .episodes-scroll-container::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .episodes-scroll-container::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+        }
+
+        .episodes-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+        }
+
+        .episode-btn {
+            flex: 0 0 auto;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            border: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .episode-btn:hover {
+            background-color: #444;
+            transform: scale(1.05);
+        }
+
+        .episode-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .recommendation-section {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid var(--secondary-color);
+        }
+
+        .recommendation-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-color);
+        }
+
+        .recommendation-title i {
+            color: var(--primary-color);
+        }
+
+        .recommendation-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            scroll-behavior: smooth;
+            padding-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .recommendation-scroll::-webkit-scrollbar {
+            height: 0px;
+        }
+
+        .rec-card {
+            flex: 0 0 auto;
+            width: 110px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            background: var(--secondary-color);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            position: relative;
+            aspect-ratio: 2/3;
+        }
+
+        .rec-card:hover {
+            transform: scale(1.05);
+        }
+
+        .rec-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .rec-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 5px 3px;
+        }
+
+        .rec-title {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .search-results-container {
+            padding: 10px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .search-results-title {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .search-results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            padding: 10px 0;
+        }
+
+        .search-results-grid .item {
+            width: 100%;
+        }
+
+        .search-results-grid .item .item-image-container {
+            aspect-ratio: 2/3;
+        }
+
+        .notification {
+            position: fixed;
+            top: 55px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            box-shadow: 0 5px 5px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+            font-size: 0.9rem;
+            max-width: 80%;
+        }
+
+        /* LANDSCAPE MODAL */
+        @media (orientation: landscape) and (max-width: 1500px) {
+            .modal-flex {
+                flex-direction: row;
+                align-items: stretch;
+                min-height: 100vh;
+            }
+            
+            .modal-video-container {
+                width: 50%;
+                height: auto;
+                position: sticky;
+                top: 0;
+                align-self: flex-start;
+                min-height: 100vh;
+                order: 2;
+            }
+            
+            .close-btn {
+                position: fixed;
+                top: 10px;
+                right: 12px;
+                z-index: 1000;
+                background: rgba(0,0,0,0.7);
+                width: 35px;
+                height: 35px;
+                font-size: 1.5rem;
+            }
+            
+            .modal-info {
+                width: 50%;
+                padding: 10px 12px;
+                overflow-y: auto;
+                max-height: 100%;
+                display: flex;
+                flex-direction: column;
+                order: 1;
+            }
+            
+            .modal-title {
+                font-size: 1.1rem;
+            }
+            
+            .favorite-btn {
+                font-size: 1.3rem;
+            }
+            
+            .modal-meta {
+                margin-bottom: 8px;
+                gap: 10px;
+                font-size: 0.7rem;
+            }
+            
+            .genre-tags {
+                margin: 6px 0 8px;
+            }
+            
+            .genre-tag {
+                padding: 3px 8px;
+                font-size: 0.65rem;
+            }
+            
+            .seasons-section {
+                margin: 8px 0;
+            }
+            
+            .episode-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 0.8rem;
+            }
+            
+            .recommendation-section {
+                margin-top: auto;
+            }
+            
+            .rec-card {
+                width: 90px;
+            }
+        }
+
+        @media (min-width: 600px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 18px;
+            }
+            .modal-video-container {
+                height: 40vh;
+            }
+            .section-title {
+                font-size: 1.1rem;
+            }
+            .logo {
+                font-size: 1.4rem;
+            }
+            .search-container {
+                max-width: 350px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+                gap: 10px;
+            }
+            .modal-video-container {
+                height: 25vh;
+            }
+            .modal-title {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification">
+        <i class="fas fa-external-link-alt"></i> Redirigiendo al reproductor...
+    </div>
+    
+    <header>
+        <div class="logo">
+            <span class="logo-pelis">Infantiles</span><span class="logo-tux"></span>
+        </div>
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="search-input" placeholder="Buscar películas o series...">
+        </div>
+        <button class="theme-toggle" id="theme-toggle">
+            <i class="fas fa-moon"></i>
+        </button>
+    </header>
+
+    <div class="search-results-container" id="search-results-container">
+        <h3 class="search-results-title">
+            <i class="fas fa-search"></i> Resultados de búsqueda
+        </h3>
+        <div class="search-results-grid" id="search-results-grid"></div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="content-container" id="main-content">
+        <div class="section">
+            <div class="section-header">
+            <div class="grid-container" id="catalog-grid">
+                
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Un gato con Suerte"
+                 data-year="2024"
+                 data-duration="1:27 min"
+                 data-rating="7.6"
+                 data-description="Beckett es un gato mimado y egoísta que da por sentada la suerte que le ha tocado. Sin embargo, todo eso está a punto de cambiar cuando pierde por descuido su novena vida. Ante lo inevitable, suplica que le permitan volver a su vida perfecta."
+                 data-genres='["Familia", "Aventura", "Comedia", "Fantasia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1p5hFuwDhbCm3F710JK1R2IrsEtY66Jjn/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/qGLnbmNnOAI1IgjtWdfVWnJkGku.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Un gato con Suerte</div>
+                    </div>
+                    </div>
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Intensamente 2"
+                 data-year="2024"
+                 data-duration="1:36 min"
+                 data-rating="7.5"
+                 data-description="Riley entra en la adolescencia y el Cuartel General de su cabeza sufre una repentina reforma para hacerle hueco a algo totalmente inesperado propio de la pubertad: ¡nuevas emociones! Alegría, Tristeza, Ira, Miedo y Asco, con años de impecable gestión a sus espaldas (según ellos...) no saben muy bien qué sentir cuando aparece con enorme ímpetu Ansiedad. Y no viene sola: le acompañan envidia, vergüenza y aburrimiento."
+                 data-genres='["Familia", "Aventura", "Comedia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1yjSRqosHVy5Wz40uWEgSjUIMXPbndbGi/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/4HEJdpcmTGm3BWWic31G4aCnuC6.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Intensamente 2</div>
+                    </div>
+                </div>  
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Harold y el lápiz mágico"
+                 data-year="2024"
+                 data-duration="1:30 min"
+                 data-rating="6.7"
+                 data-description="Dentro de su libro, el aventurero Harold puede hacer que cualquier cosa cobre vida simplemente dibujándola. Cuando crece y se dibuja a sí mismo fuera de las páginas del libro en el mundo verdadero, Harold descubre que tiene mucho que aprender sobre la vida real, y que su fiel lápiz mágico puede desencadenar las travesuras más divertidas que jamás hubiera imaginado. Cuando el poder de la imaginación sin límites cae en manos equivocadas, Harold y sus amigos necesitarán toda su creatividad para salvar tanto el mundo real como el suyo propio."
+                 data-genres='["Familia", "Aventura", "Comedia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/12u7s7wlTZ6FB_VrFKNH9a9lJV8qsI5b0/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/1LRmVHwhH4bCyMHHgz3ZZdqu7lO.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Harold y el lápiz mágico</div>
+                    </div>
+                </div>  
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                      data-title="El aprendiz de tigre"
+                 data-year="2024"
+                 data-duration="1:24 min"
+                 data-rating="7.3"
+                 data-description="Película de animación que adapta la serie de novelas de fantasía tituladas The Tiger's Apprentice, del escritor Laurence Yep. La historia sigue a un niño que se convierte en el aprendiz mágico del Sr. Hu, un tigre que habla y que es el último de una larga lista de guardianes, cuyo trabajo es proteger al antiguo Fénix de Vatten de aquellos malhechores que desean usar sus poderes para hacer el mal. En su tarea descubrirán la importancia de la lealtad, el deber y la valentía."
+                 data-genres='["Familia", "Aventura", "Animacion"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1nw_U3WfMCBxowUSDUCMXFjGlq7RDnNAw/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/zjmRuNZcLZAKWk5WE5wM57Js5xk.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">El aprendiz de tigre</div>
+                    </div>
+                </div> 
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Orión y la oscuridad"
+                 data-year="2024"
+                 data-duration="1:41 min"
+                 data-rating="6.5"
+                 data-description="Un niño muy imaginativo se enfrenta a sus miedos en un viaje inolvidable por la noche con su nuevo amigo Oscuridad, un ser enorme y sonriente."
+                 data-genres='["Comedia", "Aventura", "Familia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1rMOAAwaaKtbqsuq-gumFiFPFNy98-y92/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/6cpb2IP2c8gEbS2E2VfLKfx04cP.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Orión y la oscuridad</div>
+                    </div>
+                </div>  
+                <!-- Infantilesl-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Poliitos en Fuga:Amanecer de los nuggets"
+                 data-year="2023"
+                 data-duration="1:41 min"
+                 data-rating="6.9"
+                 data-description="Unas gallinas muy valientes hacen piña para salvar a las de su especie de un nuevo e inquietante peligro: una granja cercana donde ocurre algo muy sospechoso."
+                 data-genres='["Animacion", "Aventura", "Familia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1DUO4UipkvSL98s9ASKFjhdRGTWUgsqRm/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/xPQeZUdUIsjbbXVjm69owPdSqTG.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Poliitos en Fuga:Amanecer de los nuggets</div>
+                    </div>
+                </div>  
+                <!-- Infantiles-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Chip y Dale: Al rescate"
+                 data-year="2022"
+                 data-duration="1:36 min"
+                 data-rating="6.0"
+                 data-description="Chip y Dale: Al rescate Treinta años después de sus aventuras originales, Chip y Chop viven en Los Ángeles entre dibujos animados y humanos. Chip lleva una vida rutinaria y hogareña como vendedor de seguros, mientras que Chop se ha hecho la cirugía 3D y se dedica a explotar la nostalgia de convención en convención, desesperado por revivir sus días de gloria. Cuando un antiguo compañero de reparto desaparece misteriosamente, Chip y Chop se ven obligados a recuperar la amistad perdida y a hacer de detectives una vez más como Guardianes Rescatadores para salvar a su amigo."
+                 data-genres='["Animacion", "Aventura", "Accion"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1300zbBDdjhw60LxWW8DsbkEEzOsXENZI/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/cVE6Mop3gCqIZfnQEkvGV2rG0IM.jpg" alt="" loading="lazy">
+                        </div>
+                    <div class="movie-info">
+                    <div class="item-title">Chip y Dale: Al rescate</div>
+                    </div>
+                </div>  
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Sonic 2: La Pelicula"
+                 data-year="2022"
+                 data-duration="2:03 min"
+                 data-rating="7.4"
+                 data-description="Después de establecerse en Green Hills, Sonic se muere por demostrar que tiene madera de auténtico héroe. La prueba de fuego llega con el retorno del malvado Robotnik, en esta ocasión con un nuevo compinche, Knuckles, en busca de una esmeralda que tiene el poder de destruir civilizaciones. Sonic forma equipo con su propio compañero de fatigas, Tails, y juntos se lanzan a una aventura que les llevará por todo el mundo en busca de la preciada piedra para evitar que caiga en manos equivocadas."
+                 data-genres='["Animacion", "Aventura", "Accion"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1pdtA1a_IJVczXy9F_x3FXYIYAOl2GEgs/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/sJiHVM0A3OXDVxl4Z6a7ihMPHfm.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Sonic 2: La Pelicula</div>
+                    </div>
+                </div> 
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="linterna verde: Que teman mi poder"
+                 data-year="2022"
+                 data-duration="1:27 min"
+                 data-rating="6.8"
+                 data-description="El francotirador de la Marina recién dado de baja, John Stewart, se encuentra en una encrucijada en su vida, que solo se complica al recibir un anillo extraterrestre que le otorga los poderes de la Linterna Verde de la Tierra. Desafortunadamente, el anillo no viene con instrucciones, pero sí con equipaje, como una horda de asesinos interplanetarios empeñados en eliminar a todos los Green Lantern del universo. Ahora, con la ayuda del alegre Green Arrow, Adam Strange y Hawkgirl, este soldado reacio debe viajar al corazón de una guerra galáctica entre Rann y Thanagar y de alguna manera tener éxito donde todos los demás Green Lanterns han fracasado."
+                 data-genres='["Animacion", "Ficcion", "Accion"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1mzBIFwQgjikpCaDrDjuRy36gjLiy2jPY/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/jkXGB3K0m0VgqHjO7u5rWjDzYca.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">linterna verde: Que teman mi poder</div>
+                    </div>
+                </div> 
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Pinocho"
+                 data-year="2022"
+                 data-duration="2:01 min"
+                 data-rating="6.3"
+                 data-description="Versión en acción real del aclamado cuento sobre una marioneta que se embarca en una trepidante aventura para convertirse en un niño de verdad. La historia también presenta a otros personajes, como Gepetto, el carpintero que fabrica a Pinocho y lo trata como a su propio hijo; Pepito Grillo, que hace las veces de guía y “conciencia” de Pinocho; el Hada Azul; el Honrado Juan; la gaviota Sofía, y el cochero."
+                 data-genres='["Aventura", "Fantasia", "Familia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1nvEGJcr7_Jdw0AcMDTFwDt-JIOQB_JNW/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/76MYNTMpbiZYqzNArPXmXnPsQce.jpgg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Pinocho</div>
+                    </div>
+                </div>   
+                <!-- Infantiles Serie-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Dragon Striker"
+                     data-year="2026"
+                     data-duration="1 temporada"
+                     data-rating="7.6"
+                     data-description="Sigue a Key, un granjero de doce años que descubre que puede ser el legendario "Dragon Striker", y se une a un equipo de desvalidos para enfrentarse a los campeones de la escuela, mientras lucha por evitar que resurja un antiguo mal."
+                     data-genres='["Animacion", "Fantasia", "Misterio", "Aventura"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 11, "driveUrls": ["https://vimeos.net/embed-koubc1kmxdi6.html", "https://vimeos.net/embed-go8sq25bqqco.html", "https://vimeos.net/embed-7983xa74wcwi.html", "https://vimeos.net/embed-zvx1eie1nk44.html", "https://vimeos.net/embed-rpz5hlm59k2m.html", "https://vimeos.net/embed-h8leiw1qnj2x.html", "https://vimeos.net/embed-2pzfzu8zes6o.html","https://vimeos.net/embed-jlcvjg86p3ek.html","https://vimeos.net/embed-rsigi980dztg.html","https://vimeos.net/embed-xu5lt8a1omop.html","https://vimeos.net/embed-tpd1xgwc9kan.html"]}]'
+                     data-poster="https://www.themoviedb.org/t/p/w1280/5aELUnMSAIcJf4CAmcgIWcKmO8c.jpg"
+                     data-type="serie">
+                     <img src="https://www.themoviedb.org/t/p/w1280/5aELUnMSAIcJf4CAmcgIWcKmO8c.jpg" alt=""loading="lazy">
+                    <div class="item-info"> <div class="item-type">Serie</div></div>
+                    <div class="item-title">Dragon Striker</div>
+                   </div>
+                <!-- Infantiles -->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     ddata-title="Amigos imaginarios"
+                 data-year="2024"
+                 data-duration="1:47 min"
+                 data-rating="7.0"
+                 data-description="Una niña pasa por una experiencia difícil y entonces empieza a ver a los amigos imaginarios de todo el mundo que se han ido quedando atrás a medida que sus amigos de la vida real han ido creciendo."
+                 data-genres='["Comedia", "Fantasia", "Familia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1l992sJWOGI-PCOusI_uD0EHlVy3EJzhZ/view?usp=drive_linkk">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/8RgGuC7w8JxhykauzTC4bwha1J8.jpg" alt="" loading="lazy">
+                        <div class="item-type">7.0</div>
+                    </div>
+                    <div class="item-title">Amigos imaginarios</div>
+                </div>  
+                
+                <!-- Infantiles -->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Crisis en Tierras Infinitas – Parte 3"
+                 data-year="2024"
+                 data-duration="1:38 min"
+                 data-rating="7.2"
+                 data-description="Universos paralelos se desmoronan cuando el Antimonitor ataca. La Liga de la Justicia y héroes de otras épocas unen fuerzas para detener la destrucción inminente, dispuestos a sacrificarse por el triunfo."
+                 data-genres='["Animacion", "Accion", "Ficcion"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1gUSEWuknEZAjsCczVctus8hwYWpvlZ52/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/jXeeV5YrACBgc9CGvggdsA6PEmd.jpg" alt="" loading="lazy">
+                        <div class="item-type">7.2</div>
+                    </div>
+                    <div class="item-title">Crisis en Tierras Infinitas – Parte 3</div>
+                </div> 
+                
+                <!-- Infantiles -->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Más allá del infinito"
+                 data-year="2022"
+                 data-duration="1:45 min"
+                 data-rating="7.0"
+                 data-description="Explora cómo Buzz Lightyear evoluciona de juguete a humano en Lightyear, una producción de Pixar. Sumérgete en el origen y el impacto cultural del guardián espacial favorito de todo el mundo, en el arte de diseñar un nuevo Buzz humano y en los retos a los que se enfrenta la tripulación de Lightyear durante el camino."
+                 data-genres='["Animacion", "Aventura", "Comedia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/16W39n5tedTmh2FNgWAW-duKxbB-69iv4/view?usp=drive_link">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/jlhxuo020oPYg9ha4INUGmVcR3H.jpg" alt="Thor: Amor y Trueno" loading="lazy">
+                        <div class="item-type">7.0</div>
+                    </div>
+                    <div class="item-title">Más allá del infinito</div>
+                </div> 
+               
+                <!-- Infantiles Serie-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Stranger Things: Relatos del 85"
+                     data-year="2026"
+                     data-duration="1 temporada"
+                     data-rating="7.5"
+                     data-description="Hawkins. Invierno de 1985. En un pueblo lleno de secretos, unos héroes se enfrentan a nuevos misterios... y a una nueva y extraña amenaza."
+                     data-genres='["Animacion", "Fantasia", "Misterio", "Aventura"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 10, "driveUrls": ["https://lacloud.live/6da084ee61a8f2ac", "https://lacloud.live/a6c457850e522f9a", "https://lacloud.live/299f6542b1906976", "https://lacloud.live/4493f589044b3012", "https://lacloud.live/54127bfeab94c803", "https://lacloud.live/c8fac034d5b2ef34", "https://lacloud.live/26a5c57079786828","https://lacloud.live/ea4f7eb9a84b06d4","https://lacloud.live/b295bf249d6e1267","https://lacloud.live/20058eb14e411e30"]} ]'
+                     data-poster="https://www.themoviedb.org/t/p/w1280/ssls8OpHHXtHcvIy7AiXipBddQX.jpg"
+                     data-type="serie">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/ssls8OpHHXtHcvIy7AiXipBddQX.jpg" alt="Loki" loading="lazy">
+                        <div class="item-type">Serie</div>
+                    </div>
+                    <div class="item-title">Stranger Things: Relatos del 85</div>
+                </div>
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Luck"
+                 data-year="2022"
+                 data-duration="1:45 min"
+                 data-rating="7.7"
+                 data-description="Sam Greenfield es la persona con menos suerte del mundo. Cuando de repente se encuentra en la desconocida Tierra de la Suerte, debe aliarse con los seres mágicos que la habitan para que su suerte cambie."
+                 data-genres='["Animacion", "Aventura", "Comedia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1apiNtOdwrJ3smOZwsqKRHH_im3n94ghF/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/bwlHp4KsAyuEIAtbYs4mxCkrgyx.jpg" alt="">
+                    <div class="item-title">Luck</div>
+                </div> 
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Feliz Mini-Bat-Navidad"
+                 data-year="2023"
+                 data-duration="1:37 min"
+                 data-rating="6.6"
+                 data-description="Damian Wayne quiere ser un superhéroe como su padre, Bruce Wayne, más conocido como Batman. Cuando la Liga de la Justicia reclama a Batman para salvar al mundo, Damian, quien se ha quedado sólo en Gotham, descubre el plan malvado del Joker, Bane, Hiedra Venenosa y más villanos para robar la Navidad."
+                 data-genres='["Animacion", "Accion", "Familia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1Bhqos3ubNRKDlq5XNOQWG0H3x7-AcxwN/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/r57Ku0GNrr0wPSMd9KoSTDTmv9f.jpg" alt="">
+                    <div class="item-title">Feliz Mini-Bat-Navidada</div>
+                </div>  
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Minions nace un villano"
+                 data-year="2022"
+                 data-duration="1:27 min"
+                 data-rating="7.3"
+                 data-description="En los años 70, Gru crece siendo un gran admirador de Los salvajes seis, un supergrupo de villanos. Para demostrarles que puede ser malvado, Gru idea un plan con la esperanza de formar parte de la banda. Por suerte, cuenta con la ayuda de sus fieles seguidores, los Minions, siempre dispuestos a sembrar el caos."
+                 data-genres='["Comedia", "Familia", "Aventura"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1udrSiGTHg3p12L-I3SckBZibqF5V5agL/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/8iqrdedeQuRLoRUB82eRmgfswVV.jpg" alt="">
+                    <div class="item-title">Minions nace un villan</div>
+                </div>
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Sin tiempo para espiar"
+                 data-year="2024"
+                 data-duration="1:21 min"
+                 data-rating="7.1"
+                 data-description="Lincoln y los Loud están emocionados de dar la bienvenida a su nueva abuela, Myrtle, a la familia con una celebración de boda tropical. Sin embargo, los festejos se ven interrumpidos cuando un viejo enemigo del pasado aparece en la isla, desatando una serie de eventos inesperados."
+                 data-genres='["Animacion", "Accion", "Aventura"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1uSeqeWsfiBIXxl3grsMKMlTKZ8PTBVJW/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/eIIklEb7D9MrRxsb4vyXnm08d0G.jpg" alt="">
+                    <div class="item-title">Sin tiempo para espiar</div>
+                </div>
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="El ascenso de las Tortugas Ninja"
+                 data-year="2022"
+                 data-duration="1:25 min"
+                 data-rating="7.1"
+                 data-description="Las Tortugas Ninja mutantes adolescentes hacen frente a su mayor desafío cuando un extraño llega del futuro con un aviso urgente. Leonardo se ve obligado a levantarse y guiar a sus hermanos, Rafael, Donatelo y Miguel Angel en una lucha para salvar al mundo de los "Krang", una terrorífica especie alienígena"
+                 data-genres='["Animacion", "Accion", "Comedia", "Ficcion"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1Ami5TYp4AnjGsYneInhmLhdimGZDwdpc/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/tkifNQ0xPfdbcWGJPfaDa740u1y.jpg" alt="">
+                    <div class="item-title">El ascenso de las Tortugas Ninja</div>
+                </div>
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Mi Amigo Robot"
+                 data-year="2023"
+                 data-duration="1:42 min"
+                 data-rating="8.0"
+                 data-description="DOG es un perro solitario que vive en Manhattan. Un día decide construirse un robot, un amigo. Su amistad crece, hasta hacerse inseparables, al ritmo del Nueva York de los ochenta. Una noche de verano, Dog con gran pena, se ve obligado a abandonar a ROBOT en la playa. ¿Volverán a encontrarse?"
+                 data-genres='["Animacion", "Aventura", "Comedia", "Drama"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1Q9YZNZVwpXeSF5bSKDqJvvShICC2P9ez/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/tcnYHu131GJsme6Lgn5HQ9OWqTt.jpg" alt="">
+                    <div class="item-title">Mi Amigo Robot</div>
+                </div>
+               <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                  data-title="Crisis en Tierras Infinitas – Parte 3"
+                 data-year="2024"
+                 data-duration="1:38 min"
+                 data-rating="7.2"
+                 data-description="Universos paralelos se desmoronan cuando el Antimonitor ataca. La Liga de la Justicia y héroes de otras épocas unen fuerzas para detener la destrucción inminente, dispuestos a sacrificarse por el triunfo."
+                 data-genres='["Animacion", "Accion", "Ficcion"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1gUSEWuknEZAjsCczVctus8hwYWpvlZ52/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/jXeeV5YrACBgc9CGvggdsA6PEmd.jpg" alt="">
+                    <div class="item-title">Crisis en Tierras Infinitas – Parte 3</div>
+                </div>
+               <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                 data-title="Garfield: La película"
+                 data-year="2024"
+                 data-duration="1:43 min"
+                 data-rating="7.0"
+                 data-description="El mundialmente famoso Garfield, el gato casero que odia los lunes y que adora la lasaña, está a punto de vivir una aventura ¡en el salvaje mundo exterior! Tras una inesperada reunión con su largamente perdido padre – el desaliñado gato callejero Vic – Garfield y su amigo canino Odie se ven forzados a abandonar sus perfectas y consentidas vidas al unirse a Vic en un hilarante y muy arriesgado atraco."
+                 data-genres='["Animacion", "Aventura", "Comedia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1cj62NzXMfAinfjUAOQbN0mwmONjIFDB9/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/6QR2FOCQr41gSduN70WulRIhJb7.jpg" alt="">
+                    <div class="item-title">Garfield: La película</div>
+                </div>
+                <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                 data-title="El Imaginario"
+                 data-year="2023"
+                 data-duration="1:49 min"
+                 data-rating="7.7"
+                 data-description="Amanda y Rudger, su amigo imaginario, viven emocionantes aventuras juntos. Pero un día Rudger se queda solo y debe enfrentar una amenaza misteriosa."
+                 data-genres='["Animacion", "Aventura", "Drama"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1A4EhYwPHAN_j1RWeQ5LBZK3w4USERcJB/view?usp=drive_link">
+                    <img src="https://image.tmdb.org/t/p/original/mZlUUidADxGIJx0J7jevy1RvO1c.jpg" alt="">
+                    <div class="item-title">El Imaginario</div>
+                </div>
+               <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                 data-title="Trolls 3: Todos juntos"
+                 data-year="2023"
+                 data-duration="1:31 min"
+                 data-rating="7.2"
+                 data-description="Cuando Floyd, uno de los hermanos de Branch, es secuestrado por una pareja de maléficas estrellas del pop para aprovecharse de su talento musical, Branch y Poppy tendrán que embarcarse en un viaje tan aterrador como emotivo para reunir a la familia y rescatar a Floyd de un destino aún peor que el desolador olvido de los fans."
+                 data-genres='["Animacion", "Familia", "Musica"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1X1-pjK9rc6olHJPXXr_dGLG4TDrPt5al/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/saGpA6u71TPA8DyTYoAqSBGVZW.jpg" alt="">
+                    <div class="item-title">Trolls 3: Todos juntos</div>
+                </div>
+               <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                 data-title="Red: Una chica panda"
+                 data-year="2022"
+                 data-duration="1:39 min"
+                 data-rating="8.1"
+                 data-description="Este largometraje gira en torno a Mei Lee, una joven de trece años que se debate constantemente entre ser obediente y el caos de la adolescencia. Y, por si esta etapa no fuese complicada de por sí, cada vez que Mei se entusiasma demasiado se convierte en un panda rojo gigante."
+                 data-genres='["Animacion", "Aventura", "Comedia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/12MyBz8i5ILGrxfBwoEcgtidDyeotyieI/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/A4jt7Gqa7dRT2ZIo3hNHc4esw3d.jpg" alt="">
+                    <div class="item-title">Red: Una chica panda</div>
+                </div>
+               <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                 data-title="Ultraman: El ascenso"
+                 data-year="2024"
+                 data-duration="2:01 min"
+                 data-rating="8.1"
+                 data-description="Una estrella del deporte vuelve a casa a regañadientes para seguir los pasos de su padre y convertirse en Ultraman, el héroe encargado de proteger Tokio de unos monstruos gigantes."
+                 data-genres='["Animacion", "Familia", "Ficcion"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1h5NCbZZ0aPM9EzTMkBMNwwkPnBgEp3u4/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/2D7SsqU8VZOl838KR7q9pzljaLe.jpg" alt="">
+                    <div class="item-title">Ultraman: El ascenso</div>
+                </div>
+               <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                 data-title="Wish: El poder de los deseos"
+                 data-year="2023"
+                 data-duration="1:35 min"
+                 data-rating="6.2"
+                 data-description="Asha y una pequeña bola de energía ilimitada llamada Star demuestran que cuando la voluntad de un ser humano valiente se conecta con la magia de las estrellas, pueden suceder cosas maravillosas."
+                 data-genres='["Animacion", "Familia", "Fantasia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/14Xef0E377ApgyxPApS0f7QdbiY3wwjTV/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/1VXMrUioKfPAPSsezHKexx77Dbz.jpg" alt="">
+                    <div class="item-title">Wish: El poder de los deseos</div>
+                </div>
+               <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                 data-title="Wonka"
+                 data-year="2023"
+                 data-duration="1:57 min"
+                 data-rating="7.0"
+                 data-description="Basada en el personaje que protagoniza Charlie y la fábrica de chocolate, el libro infantil más emblemático de Roald Dahl y uno de los más vendidos de todos los tiempos, Wonka cuenta la historia de cómo el mayor inventor, mago y chocolatero del mundo se convirtió en el querido Willy Wonka que conocemos hoy en día."
+                 data-genres='["Comedia", "Familia", "Fantasia"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1W7soRdGUvaI4me3T2U94C4dKbTyAE_9b/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/6eHcR7zwvNSvkOl9jbctU0lvZQ1.jpg" alt="">
+                    <div class="item-title">Wonka</div>
+                </div>
+               <!-- Infantiles-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                 data-title="El Pájaro Loco ¡se va del campamento! "
+                 data-year="2024"
+                 data-duration="1:40 min"
+                 data-rating="6.4"
+                 data-description="Tras su expulsión del bosque, Woody cree haber encontrado un nuevo hogar en el Campamento Woo Hoo, hasta que un inspector amenaza con cerrarlo."
+                 data-genres='["Comedia", "Familia", "Accion"]'
+                 data-poster=""
+                 data-driveurl="https://drive.google.com/file/d/1KhYfvuDOgn2HGIfi9u4t4KskxpbRk8m2/view?usp=drive_link">
+                    <img src="https://www.themoviedb.org/t/p/w1280/x7QXH6T8oTKlUbKt8TD1rPimzCr.jpg" alt="">
+                    <div class="item-title">El Pájaro Loco ¡se va del campamento!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal" id="details-modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">×</span>
+            <div class="modal-flex">
+                <div class="modal-video-container" id="modal-video-container">
+                    <iframe class="modal-iframe" id="modal-iframe" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="modal-info">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="modal-title"></h2>
+                        <button class="favorite-btn" id="modal-favorite-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="modal-meta" id="modal-meta">
+                        <span><i class="fas fa-calendar"></i> <span id="modal-year"></span></span>
+                        <span><i class="fas fa-clock"></i> <span id="modal-duration"></span></span>
+                        <span><i class="fas fa-star"></i> <span id="modal-rating"></span></span>
+                    </div>
+                    <div class="genre-tags" id="modal-genres"></div>
+                    
+                    <div class="seasons-section" id="seasons-section" style="display: none;">
+                        <div class="seasons-header">
+                            <div class="season-selector">
+                                <button class="season-btn" id="season-btn">
+                                    Temporada 1 <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <div class="season-dropdown" id="season-dropdown"></div>
+                            </div>
+                            <div class="episodes-count">
+                                Episodios: <span id="episodes-count">0</span>
+                            </div>
+                        </div>
+                        <div id="episodes-buttons-container" class="episodes-scroll-container"></div>
+                    </div>
+                    
+                    <div id="modal-description-container"></div>
+                    
+                    <div class="recommendation-section" id="rec-section">
+                        <div class="recommendation-title">
+                            <i class="fas fa-thumbs-up"></i> Quizás te interese
+                        </div>
+                        <div class="recommendation-scroll" id="recommendation-scroll"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    <script>
+        // ===========================================
+        // SISTEMA DE HISTORIAL Y FAVORITOS
+        // ===========================================
+        
+        let watchHistory = JSON.parse(localStorage.getItem('cinetux_watch_history') || '[]');
+        
+        function saveWatchHistory() {
+            localStorage.setItem('cinetux_watch_history', JSON.stringify(watchHistory));
+        }
+        
+        function addToWatchHistoryOnPlay(item) {
+            if (!item || !item.title) return;
+            const existingIndex = watchHistory.findIndex(h => h.title === item.title);
+            if (existingIndex !== -1) watchHistory.splice(existingIndex, 1);
+            
+            const posterUrl = item.poster || 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(item.title);
+            
+            const historyItem = {
+                title: item.title, 
+                year: item.year, 
+                duration: item.duration, 
+                rating: item.rating,
+                description: item.description, 
+                genres: item.genres, 
+                driveurl: item.driveurl,
+                poster: posterUrl, 
+                type: item.type || (item.hasSeasons ? 'serie' : 'película'),
+                hasSeasons: item.hasSeasons || false, 
+                seasons: item.seasons || [], 
+                timestamp: new Date().toISOString()
+            };
+            watchHistory.unshift(historyItem);
+            if (watchHistory.length > 50) watchHistory = watchHistory.slice(0, 50);
+            saveWatchHistory();
+        }
+        
+        let favorites = JSON.parse(localStorage.getItem('cinetux_favorites') || '[]');
+        function saveFavorites() { localStorage.setItem('cinetux_favorites', JSON.stringify(favorites)); }
+        function isFavorite(title) { return favorites.some(fav => fav.title === title); }
+        function addFavorite(item) { 
+            if (!isFavorite(item.title)) { 
+                favorites.push(item); 
+                saveFavorites(); 
+                updateFavoriteButtonUI(true); 
+                showNotification(`✓ "${item.title}" añadido a favoritos`); 
+            } 
+        }
+        function removeFavorite(title) { 
+            favorites = favorites.filter(fav => fav.title !== title); 
+            saveFavorites(); 
+            updateFavoriteButtonUI(false); 
+            showNotification(`✗ Eliminado de favoritos`); 
+        }
+        function toggleFavorite(item) { 
+            if (isFavorite(item.title)) removeFavorite(item.title); 
+            else addFavorite(item); 
+        }
+        function updateFavoriteButtonUI(isFav) { 
+            const btn = document.getElementById('modal-favorite-btn');
+            if (btn) btn.innerHTML = isFav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>'; 
+        }
+        
+        // ===========================================
+        // FUNCIONES DE VIDEO Y MODAL
+        // ===========================================
+        let currentSeasons = [];
+        let currentSeasonIndex = 0;
+        let currentEpisodeIndex = 0;
+        let currentSeriesId = '';
+        let seriesProgress = {};
+        let isDescriptionExpanded = false;
+        let currentWatchHistoryItem = null;
+        let currentFavoriteItem = null;
+        
+        function loadSeriesProgress() { const saved = localStorage.getItem('seriesProgress'); if (saved) seriesProgress = JSON.parse(saved); }
+        function saveSeriesProgress() { localStorage.setItem('seriesProgress', JSON.stringify(seriesProgress)); }
+        function saveCurrentSeriesProgress() { if (currentSeriesId && currentSeasons.length) { seriesProgress[currentSeriesId] = { seasonIndex: currentSeasonIndex, episodeIndex: currentEpisodeIndex, lastWatched: new Date().toISOString() }; saveSeriesProgress(); } }
+        function loadSavedProgressForSeries(seriesId) { return seriesProgress[seriesId] || null; }
+        
+        function convertGoogleDriveUrl(url) {
+            if (!url || url.trim() === '') return '';
+            if (url.includes('/preview')) return url;
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) return `https://drive.google.com/file/d/${match[1]}/preview`;
+            if (url.includes('vimeo') || url.includes('youtube') || url.includes('vimeos.net') || url.includes('embed')) return url;
+            return '';
+        }
+        
+        function loadEmbedVideo(driveUrl) {
+            const container = document.getElementById('modal-video-container');
+            container.innerHTML = '<iframe class="modal-iframe" id="modal-iframe" frameborder="0" allowfullscreen></iframe>';
+            const newIframe = document.getElementById('modal-iframe');
+            if (!driveUrl || driveUrl.trim() === '') { 
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>No hay video disponible.</p></div>'; 
+                return; 
+            }
+            const embedUrl = convertGoogleDriveUrl(driveUrl);
+            if (embedUrl === '') { 
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>Enlace no válido.</p></div>'; 
+                return; 
+            }
+            newIframe.src = embedUrl;
+            newIframe.onload = function() { saveCurrentSeriesProgress(); if (currentWatchHistoryItem) addToWatchHistoryOnPlay(currentWatchHistoryItem); };
+        }
+        
+        function setupDescriptionWithReadMore(description) {
+            const container = document.getElementById('modal-description-container');
+            container.innerHTML = '';
+            const descDiv = document.createElement('div');
+            descDiv.className = 'modal-description collapsed';
+            descDiv.textContent = description || 'Sin descripción disponible.';
+            const readBtn = document.createElement('button');
+            readBtn.className = 'read-more-btn';
+            readBtn.innerHTML = 'Ver más <i class="fas fa-chevron-down"></i>';
+            const check = () => {
+                setTimeout(() => {
+                    const lineH = parseFloat(getComputedStyle(descDiv).lineHeight);
+                    const maxH = lineH * 3;
+                    if (descDiv.scrollHeight > maxH + 5) {
+                        readBtn.style.display = 'flex';
+                        descDiv.classList.add('collapsed');
+                        isDescriptionExpanded = false;
+                    } else {
+                        readBtn.style.display = 'none';
+                        descDiv.classList.remove('collapsed');
+                        isDescriptionExpanded = true;
+                    }
+                }, 50);
+            };
+            check();
+            window.addEventListener('resize', check);
+            readBtn.addEventListener('click', () => {
+                if (isDescriptionExpanded) {
+                    descDiv.classList.add('collapsed');
+                    readBtn.innerHTML = 'Ver más <i class="fas fa-chevron-down"></i>';
+                    readBtn.classList.remove('expanded');
+                    isDescriptionExpanded = false;
+                } else {
+                    descDiv.classList.remove('collapsed');
+                    readBtn.innerHTML = 'Ver menos <i class="fas fa-chevron-up"></i>';
+                    readBtn.classList.add('expanded');
+                    isDescriptionExpanded = true;
+                }
+            });
+            container.appendChild(descDiv);
+            container.appendChild(readBtn);
+        }
+        
+        function setupSeasonSelector() {
+            const dropdown = document.getElementById('season-dropdown');
+            const btn = document.getElementById('season-btn');
+            dropdown.innerHTML = '';
+            currentSeasons.forEach((season, idx) => {
+                const opt = document.createElement('div');
+                opt.className = `season-option ${idx === currentSeasonIndex ? 'active' : ''}`;
+                opt.dataset.index = idx;
+                opt.innerHTML = `<span>${season.name}</span>`;
+                opt.addEventListener('click', () => {
+                    currentSeasonIndex = parseInt(opt.dataset.index);
+                    btn.innerHTML = `${currentSeasons[currentSeasonIndex].name} <i class="fas fa-chevron-down"></i>`;
+                    document.querySelectorAll('.season-option').forEach(o => o.classList.remove('active'));
+                    opt.classList.add('active');
+                    loadSeason(currentSeasonIndex);
+                    dropdown.classList.remove('show');
+                    saveCurrentSeriesProgress();
+                });
+                dropdown.appendChild(opt);
+            });
+            btn.innerHTML = `${currentSeasons[currentSeasonIndex].name} <i class="fas fa-chevron-down"></i>`;
+            btn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('show'); });
+            document.addEventListener('click', () => dropdown.classList.remove('show'));
+        }
+        
+        function loadSeason(seasonIndex) {
+            const season = currentSeasons[seasonIndex];
+            if (!season) return;
+            document.getElementById('episodes-count').innerHTML = season.episodes;
+            const container = document.getElementById('episodes-buttons-container');
+            container.innerHTML = '';
+            const saved = seriesProgress[currentSeriesId];
+            let activeEp = (saved && saved.seasonIndex === seasonIndex) ? saved.episodeIndex : 0;
+            for (let i = 1; i <= season.episodes; i++) {
+                const epIdx = i - 1;
+                const btn = document.createElement('button');
+                btn.className = `episode-btn ${(epIdx === activeEp && seasonIndex === currentSeasonIndex) ? 'active' : ''}`;
+                btn.textContent = i;
+                btn.dataset.index = epIdx;
+                btn.dataset.seasonIndex = seasonIndex;
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.episode-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentEpisodeIndex = parseInt(btn.dataset.index);
+                    currentSeasonIndex = parseInt(btn.dataset.seasonIndex);
+                    const url = currentSeasons[currentSeasonIndex].driveUrls[currentEpisodeIndex];
+                    if (url && url.trim()) loadEmbedVideo(url);
+                    else {
+                        document.getElementById('modal-video-container').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>No hay video disponible.</p></div>';
+                    }
+                    saveCurrentSeriesProgress();
+                });
+                container.appendChild(btn);
+            }
+            setTimeout(() => {
+                const act = container.querySelector('.episode-btn.active');
+                if (act) act.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }, 100);
+        }
+        
+        // ===========================================
+        // OBTENER TODO EL CONTENIDO PARA RECOMENDACIONES
+        // ===========================================
+        function obtenerPosterDelElemento(el) {
+            let poster = el.getAttribute('data-poster');
+            if (poster) return poster;
+            
+            const img = el.querySelector('.item-image-container img');
+            if (img && img.src) return img.src;
+            
+            const anyImg = el.querySelector('img');
+            if (anyImg && anyImg.src) return anyImg.src;
+            
+            return null;
+        }
+        
+        function obtenerTodoElContenidoDesdeDOM() {
+            const items = [];
+            document.querySelectorAll('.item').forEach(el => {
+                const title = el.getAttribute('data-title');
+                if (!title) return;
+                
+                const poster = obtenerPosterDelElemento(el) || 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(title);
+                
+                items.push({
+                    title: title.trim(),
+                    year: el.getAttribute('data-year') || '',
+                    rating: el.getAttribute('data-rating') || '',
+                    duration: el.getAttribute('data-duration') || '',
+                    description: el.getAttribute('data-description') || '',
+                    genres: JSON.parse(el.getAttribute('data-genres') || '[]'),
+                    driveurl: el.getAttribute('data-driveurl') || '',
+                    poster: poster,
+                    type: el.getAttribute('data-type') || 'película',
+                    hasSeasons: el.getAttribute('data-has-seasons') === 'true',
+                    seasons: el.getAttribute('data-has-seasons') === 'true' ? JSON.parse(el.getAttribute('data-seasons') || '[]') : []
+                });
+            });
+            return items;
+        }
+        
+        function getRandomRecommendationsFromDOM(excludeTitle = null) {
+            let all = obtenerTodoElContenidoDesdeDOM();
+            if (excludeTitle) all = all.filter(c => c.title !== excludeTitle);
+            if (all.length === 0) return [];
+            for (let i = all.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [all[i], all[j]] = [all[j], all[i]];
+            }
+            return all.slice(0, 8);
+        }
+        
+        function renderRecommendationsInModal(currentTitle) {
+            const container = document.getElementById('recommendation-scroll');
+            if (!container) return;
+            const recs = getRandomRecommendationsFromDOM(currentTitle);
+            container.innerHTML = '';
+            if (recs.length === 0) {
+                container.innerHTML = `<div style="padding:20px;text-align:center;color:#888;">No hay más contenido disponible</div>`;
+                return;
+            }
+            recs.forEach(rec => {
+                const card = document.createElement('div');
+                card.className = 'rec-card';
+                const posterUrl = rec.poster || 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(rec.title);
+                card.innerHTML = `<img src="${posterUrl}" class="rec-poster" alt="${rec.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/100x150?text=${encodeURIComponent(rec.title)}'"><div class="rec-info"><div class="rec-title">${rec.title}</div></div>`;
+                
+                const original = Array.from(document.querySelectorAll('.item')).find(el => {
+                    const t = el.getAttribute('data-title');
+                    return t && t.trim() === rec.title;
+                });
+                
+                if (original) {
+                    const isSeries = original.getAttribute('data-has-seasons') === 'true';
+                    if (isSeries) {
+                        card.addEventListener('click', () => showSeriesDetails(original));
+                    } else {
+                        card.addEventListener('click', () => showMovieDetails(original));
+                    }
+                } else {
+                    const tmp = document.createElement('div');
+                    tmp.setAttribute('data-title', rec.title);
+                    tmp.setAttribute('data-year', rec.year || '');
+                    tmp.setAttribute('data-duration', rec.duration || '');
+                    tmp.setAttribute('data-rating', rec.rating || '');
+                    tmp.setAttribute('data-description', rec.description || '');
+                    tmp.setAttribute('data-genres', JSON.stringify(rec.genres || []));
+                    tmp.setAttribute('data-driveurl', rec.driveurl || '');
+                    tmp.setAttribute('data-type', rec.type || 'película');
+                    tmp.setAttribute('data-poster', posterUrl);
+                    if (rec.hasSeasons) {
+                        tmp.setAttribute('data-has-seasons', 'true');
+                        tmp.setAttribute('data-seasons', JSON.stringify(rec.seasons || []));
+                        card.addEventListener('click', () => showSeriesDetails(tmp));
+                    } else {
+                        card.addEventListener('click', () => showMovieDetails(tmp));
+                    }
+                }
+                container.appendChild(card);
+            });
+        }
+        
+        // ===========================================
+        // MOSTRAR DETALLES
+        // ===========================================
+        function showMovieDetails(element) {
+            document.getElementById('seasons-section').style.display = 'none';
+            const title = element.getAttribute('data-title');
+            const year = element.getAttribute('data-year');
+            const duration = element.getAttribute('data-duration');
+            const rating = element.getAttribute('data-rating');
+            const description = element.getAttribute('data-description');
+            const genres = JSON.parse(element.getAttribute('data-genres') || '[]');
+            const driveUrl = element.getAttribute('data-driveurl');
+            const type = element.getAttribute('data-type') || 'película';
+            let poster = element.getAttribute('data-poster');
+            if (!poster) {
+                const img = element.querySelector('.item-image-container img');
+                if (img && img.src) poster = img.src;
+            }
+            if (!poster) poster = 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(title);
+            
+            currentFavoriteItem = {
+                title, year, duration, rating, description, genres,
+                driveurl: driveUrl, poster, type, hasSeasons: false
+            };
+            currentWatchHistoryItem = currentFavoriteItem;
+            loadEmbedVideo(driveUrl);
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-year').textContent = year;
+            document.getElementById('modal-duration').textContent = duration;
+            document.getElementById('modal-rating').textContent = rating;
+            const mg = document.getElementById('modal-genres');
+            mg.innerHTML = '';
+            if (genres && Array.isArray(genres)) {
+                genres.forEach(g => { const tag = document.createElement('div'); tag.className = 'genre-tag'; tag.textContent = g; mg.appendChild(tag); });
+            }
+            setupDescriptionWithReadMore(description || 'Sin descripción disponible.');
+            renderRecommendationsInModal(title);
+            updateFavoriteButtonUI(isFavorite(title));
+            document.getElementById('details-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function showSeriesDetails(element) {
+            const title = element.getAttribute('data-title');
+            const year = element.getAttribute('data-year');
+            const duration = element.getAttribute('data-duration');
+            const rating = element.getAttribute('data-rating');
+            const description = element.getAttribute('data-description');
+            const genres = JSON.parse(element.getAttribute('data-genres') || '[]');
+            const driveUrl = element.getAttribute('data-driveurl');
+            const type = element.getAttribute('data-type') || 'serie';
+            const hasSeasons = element.getAttribute('data-has-seasons') === 'true';
+            let poster = element.getAttribute('data-poster');
+            if (!poster) {
+                const img = element.querySelector('.item-image-container img');
+                if (img && img.src) poster = img.src;
+            }
+            if (!poster) poster = 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(title);
+            const seasonsData = hasSeasons ? JSON.parse(element.getAttribute('data-seasons') || '[]') : [];
+            
+            currentFavoriteItem = {
+                title, year, duration, rating, description, genres,
+                driveurl: driveUrl, poster, type, hasSeasons, seasons: seasonsData
+            };
+            currentWatchHistoryItem = currentFavoriteItem;
+            currentSeriesId = title.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-year').textContent = year;
+            document.getElementById('modal-duration').textContent = duration;
+            document.getElementById('modal-rating').textContent = rating;
+            const mg = document.getElementById('modal-genres');
+            mg.innerHTML = '';
+            if (genres && Array.isArray(genres)) {
+                genres.forEach(g => { const tag = document.createElement('div'); tag.className = 'genre-tag'; tag.textContent = g; mg.appendChild(tag); });
+            }
+            setupDescriptionWithReadMore(description || 'Sin descripción disponible.');
+            if (hasSeasons && seasonsData.length > 0) {
+                document.getElementById('seasons-section').style.display = 'block';
+                currentSeasons = seasonsData;
+                const saved = loadSavedProgressForSeries(currentSeriesId);
+                if (saved) { currentSeasonIndex = saved.seasonIndex; currentEpisodeIndex = saved.episodeIndex; }
+                else { currentSeasonIndex = 0; currentEpisodeIndex = 0; }
+                setupSeasonSelector();
+                loadSeason(currentSeasonIndex);
+                if (currentSeasons.length > currentSeasonIndex && 
+                    currentSeasons[currentSeasonIndex].driveUrls && 
+                    currentSeasons[currentSeasonIndex].driveUrls.length > currentEpisodeIndex && 
+                    currentSeasons[currentSeasonIndex].driveUrls[currentEpisodeIndex]) {
+                    loadEmbedVideo(currentSeasons[currentSeasonIndex].driveUrls[currentEpisodeIndex]);
+                } else if (driveUrl) {
+                    loadEmbedVideo(driveUrl);
+                } else {
+                    document.getElementById('modal-video-container').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>No hay video disponible.</p></div>';
+                }
+            } else {
+                document.getElementById('seasons-section').style.display = 'none';
+                loadEmbedVideo(driveUrl);
+            }
+            renderRecommendationsInModal(title);
+            updateFavoriteButtonUI(isFavorite(title));
+            document.getElementById('details-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModalAndSave() {
+            saveCurrentSeriesProgress();
+            document.getElementById('details-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('modal-video-container').innerHTML = '<iframe class="modal-iframe" id="modal-iframe" frameborder="0" allowfullscreen></iframe>';
+            currentSeasons = [];
+            currentSeasonIndex = 0;
+            currentEpisodeIndex = 0;
+            currentSeriesId = '';
+            isDescriptionExpanded = false;
+            currentWatchHistoryItem = null;
+        }
+        
+        // ===========================================
+        // NOTIFICACIONES Y BÚSQUEDA
+        // ===========================================
+        function showNotification(msg) {
+            const n = document.getElementById('notification');
+            n.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`;
+            n.style.display = 'block';
+            setTimeout(() => n.style.display = 'none', 2000);
+        }
+        
+        function searchMovies() {
+            const term = document.getElementById('search-input').value.toLowerCase().trim();
+            const resultsContainer = document.getElementById('search-results-container');
+            const resultsGrid = document.getElementById('search-results-grid');
+            if (term === '') {
+                resultsContainer.style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                return;
+            }
+            document.getElementById('main-content').style.display = 'none';
+            resultsContainer.style.display = 'block';
+            resultsGrid.innerHTML = '';
+            let has = false;
+            document.querySelectorAll('.item').forEach(item => {
+                const title = item.getAttribute('data-title');
+                if (title && title.toLowerCase().includes(term)) {
+                    has = true;
+                    const clone = item.cloneNode(true);
+                    clone.onclick = function(e) {
+                        const original = item;
+                        if (original.getAttribute('data-has-seasons') === 'true') {
+                            showSeriesDetails(original);
+                        } else {
+                            showMovieDetails(original);
+                        }
+                    };
+                    resultsGrid.appendChild(clone);
+                }
+            });
+            if (!has) {
+                resultsGrid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;"><i class="fas fa-search" style="font-size:3rem;"></i><h3>No se encontraron resultados</h3></div>`;
+            }
+        }
+        
+        // ===========================================
+        // INICIALIZACIÓN
+        // ===========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSeriesProgress();
+            
+            // Tema
+            document.getElementById('theme-toggle').addEventListener('click', () => {
+                document.body.classList.toggle('light-theme');
+                const icon = document.getElementById('theme-toggle').querySelector('i');
+                if (document.body.classList.contains('light-theme')) {
+                    icon.className = 'fas fa-sun';
+                } else {
+                    icon.className = 'fas fa-moon';
+                }
+                localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+            });
+            if (localStorage.getItem('theme') === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('theme-toggle').querySelector('i').className = 'fas fa-sun';
+            }
+            
+            // Modal close
+            document.getElementById('close-modal').addEventListener('click', closeModalAndSave);
+            window.addEventListener('click', (e) => {
+                if (e.target === document.getElementById('details-modal')) closeModalAndSave();
+            });
+            
+            // Fav button
+            document.getElementById('modal-favorite-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (currentFavoriteItem) toggleFavorite(currentFavoriteItem);
+            });
+            
+            // Search
+            let searchTimeout;
+            document.getElementById('search-input').addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(searchMovies, 300);
+            });
+        });
+    </script>
+</body>
+</html>
