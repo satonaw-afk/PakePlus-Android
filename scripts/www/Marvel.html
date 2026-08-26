@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CINETUX - Streaming</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-color: #141414;
+            --text-color: #ffffff;
+            --primary-color: #e50914;
+            --secondary-color: #303030;
+            --hover-color: #b20710;
+            --favorite-color: #ff4d4d;
+            --card-width: 110px;
+            --card-height: 150px;
+        }
+
+        .light-theme {
+            --bg-color: #f4f4f4;
+            --text-color: #333333;
+            --primary-color: #e50914;
+            --secondary-color: #dddddd;
+            --hover-color: #b20710;
+            --favorite-color: #e50914;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            padding-bottom: 20px;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 15px;
+            background-color: var(--bg-color);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            top: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            height: 50px;
+            transition: all 0.3s ease;
+            gap: 10px;
+        }
+
+        .logo {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .logo-pelis { color: var(--primary-color); }
+        .logo-tux { color: grey; }
+
+        .search-container {
+            flex: 1;
+            min-width: 0;
+            max-width: 300px;
+            position: relative;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 6px 6px 6px 32px;
+            border: none;
+            border-radius: 20px;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            font-size: 0.8rem;
+            height: 32px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .content-container {
+            padding: 60px 15px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 0.95rem;
+            padding-left: 8px;
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title i {
+            color: var(--primary-color);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 14px;
+            padding: 4px 0 12px;
+        }
+
+        /* ===== ESTILO DE TARJETA IGUAL AL PRIMER CÓDIGO ===== */
+        .item {
+            flex: 0 0 auto;
+            cursor: pointer;
+            transition: transform 0.3s;
+            background: none;
+            border-radius: 8px;
+            overflow: visible;
+            box-shadow: none;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item:hover {
+            transform: scale(1.02);
+        }
+
+        .item-image-container {
+            position: relative;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            background-color: #1a1a1a;
+            aspect-ratio: 2/3;
+        }
+
+        .item-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s;
+        }
+
+        .item:hover .item-image-container img {
+            transform: scale(1.03);
+        }
+
+        .item-title {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-top: 6px;
+            text-align: center;
+            color: var(--text-color);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+            padding: 0 2px;
+        }
+
+        .item-type {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            background: var(--primary-color);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .item-rating {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(0,0,0,0.7);
+            color: #ffd700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        /* ===== FIN ESTILO TARJETA ===== */
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 200;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--primary-color);
+            background: rgba(0,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .modal-flex {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-video-container {
+            width: 100%;
+            height: 30vh;
+            position: relative;
+            background-color: #000;
+        }
+
+        .modal-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .modal-info {
+            padding: 12px 15px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .favorite-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+            transition: all 0.3s ease;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .favorite-btn.active {
+            color: var(--favorite-color);
+        }
+
+        .favorite-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .modal-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 12px;
+            font-size: 0.75rem;
+        }
+
+        .modal-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .modal-meta i {
+            color: var(--primary-color);
+        }
+
+        .genre-tags {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0 12px;
+            flex-wrap: wrap;
+        }
+
+        .genre-tag {
+            background-color: var(--secondary-color);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+        }
+
+        .modal-description {
+            margin-bottom: 0;
+            line-height: 1.4;
+            font-size: 0.85rem;
+            position: relative;
+            color: var(--text-color);
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .modal-description.collapsed {
+            max-height: 4.5em;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+        
+        .modal-description.expanded {
+            max-height: none;
+            display: block;
+            -webkit-line-clamp: unset;
+        }
+
+        .read-more-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 5px 0;
+            margin-top: 4px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+            width: fit-content;
+        }
+
+        .read-more-btn:hover {
+            opacity: 0.8;
+        }
+
+        .read-more-btn i {
+            font-size: 0.7rem;
+            transition: transform 0.3s ease;
+        }
+
+        .read-more-btn.expanded i {
+            transform: rotate(180deg);
+        }
+
+        .seasons-section {
+            margin: 12px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--secondary-color);
+        }
+
+        .seasons-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .season-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .season-btn {
+            background-color: var(--secondary-color);
+            border: none;
+            color: var(--text-color);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .season-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .season-btn i {
+            font-size: 0.7rem;
+        }
+
+        .episodes-count {
+            font-size: 0.7rem;
+            color: #aaa;
+            font-weight: 500;
+        }
+
+        .episodes-count span {
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .season-dropdown {
+            position: absolute;
+            background-color: var(--bg-color);
+            border: 1px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 10px 0;
+            min-width: 150px;
+            z-index: 50;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+            top: 45px;
+            left: 0;
+        }
+
+        .season-dropdown.show {
+            display: block;
+        }
+
+        .season-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .season-option:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .season-option.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .episodes-scroll-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 5px 0;
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .episodes-scroll-container::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .episodes-scroll-container::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+        }
+
+        .episodes-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+        }
+
+        .episode-btn {
+            flex: 0 0 auto;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            border: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .episode-btn:hover {
+            background-color: #444;
+            transform: scale(1.05);
+        }
+
+        .episode-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .recommendation-section {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid var(--secondary-color);
+        }
+
+        .recommendation-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-color);
+        }
+
+        .recommendation-title i {
+            color: var(--primary-color);
+        }
+
+        .recommendation-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            scroll-behavior: smooth;
+            padding-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .recommendation-scroll::-webkit-scrollbar {
+            height: 0px;
+        }
+
+        .rec-card {
+            flex: 0 0 auto;
+            width: 110px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            background: var(--secondary-color);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            position: relative;
+            aspect-ratio: 2/3;
+        }
+
+        .rec-card:hover {
+            transform: scale(1.05);
+        }
+
+        .rec-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .rec-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 5px 3px;
+        }
+
+        .rec-title {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .search-results-container {
+            padding: 10px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .search-results-title {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .search-results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            padding: 10px 0;
+        }
+
+        .search-results-grid .item {
+            width: 100%;
+        }
+
+        .search-results-grid .item .item-image-container {
+            aspect-ratio: 2/3;
+        }
+
+        .notification {
+            position: fixed;
+            top: 55px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            box-shadow: 0 5px 5px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+            font-size: 0.9rem;
+            max-width: 80%;
+        }
+
+        /* LANDSCAPE MODAL */
+        @media (orientation: landscape) and (max-width: 1500px) {
+            .modal-flex {
+                flex-direction: row;
+                align-items: stretch;
+                min-height: 100vh;
+            }
+            
+            .modal-video-container {
+                width: 50%;
+                height: auto;
+                position: sticky;
+                top: 0;
+                align-self: flex-start;
+                min-height: 100vh;
+                order: 2;
+            }
+            
+            .close-btn {
+                position: fixed;
+                top: 10px;
+                right: 12px;
+                z-index: 1000;
+                background: rgba(0,0,0,0.7);
+                width: 35px;
+                height: 35px;
+                font-size: 1.5rem;
+            }
+            
+            .modal-info {
+                width: 50%;
+                padding: 10px 12px;
+                overflow-y: auto;
+                max-height: 100%;
+                display: flex;
+                flex-direction: column;
+                order: 1;
+            }
+            
+            .modal-title {
+                font-size: 1.1rem;
+            }
+            
+            .favorite-btn {
+                font-size: 1.3rem;
+            }
+            
+            .modal-meta {
+                margin-bottom: 8px;
+                gap: 10px;
+                font-size: 0.7rem;
+            }
+            
+            .genre-tags {
+                margin: 6px 0 8px;
+            }
+            
+            .genre-tag {
+                padding: 3px 8px;
+                font-size: 0.65rem;
+            }
+            
+            .seasons-section {
+                margin: 8px 0;
+            }
+            
+            .episode-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 0.8rem;
+            }
+            
+            .recommendation-section {
+                margin-top: auto;
+            }
+            
+            .rec-card {
+                width: 90px;
+            }
+        }
+
+        @media (min-width: 600px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 18px;
+            }
+            .modal-video-container {
+                height: 40vh;
+            }
+            .section-title {
+                font-size: 1.1rem;
+            }
+            .logo {
+                font-size: 1.4rem;
+            }
+            .search-container {
+                max-width: 350px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+                gap: 10px;
+            }
+            .modal-video-container {
+                height: 25vh;
+            }
+            .modal-title {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification">
+        <i class="fas fa-external-link-alt"></i> Redirigiendo al reproductor...
+    </div>
+    
+    <header>
+        <div class="logo">
+            <span class="logo-pelis">Marvel</span><span class="logo-tux"></span>
+        </div>
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="search-input" placeholder="Buscar películas o series...">
+        </div>
+        <button class="theme-toggle" id="theme-toggle">
+            <i class="fas fa-moon"></i>
+        </button>
+    </header>
+
+    <div class="search-results-container" id="search-results-container">
+        <h3 class="search-results-title">
+            <i class="fas fa-search"></i> Resultados de búsqueda
+        </h3>
+        <div class="search-results-grid" id="search-results-grid"></div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="content-container" id="main-content">
+        <div class="section">
+            <div class="section-header">
+            <div class="grid-container" id="catalog-grid">
+                
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Iron Man"
+                     data-year="2008"
+                     data-duration="2:06 min"
+                     data-rating="7.7"
+                     data-description="El multimillonario fabricante de armas Tony Stark debe enfrentarse a su turbio pasado después de sufrir un accidente con una de sus armas. Equipado con una armadura de última generación tecnológica, se convierte en 'El hombre de hierro' para combatir el mal a escala global."
+                     data-genres='["Accion", "Aventura", "Ficcion"]'
+                     data-driveurl="https://vimeos.net/embed-su4jkfx8l3bt.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/tFCTNx7foAsUQpgu2x1KjAJD1wT.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Iron Man</div>
+                    </div>
+                    </div>
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Iron Man 2"
+                     data-year="2010"
+                     data-duration="2:05 min"
+                     data-rating="6.8"
+                     data-description="El mundo sabe que el multimillonario Tony Stark es Iron Man, el superhéroe enmascarado. Sometido a presiones por parte del gobierno, la prensa y la opinión pública para que comparta su tecnología con el ejército, Tony es reacio a desvelar los secretos de la armadura de Iron Man porque teme que esa información pueda caer en manos indeseables."
+                     data-genres='["Accion", "Aventura", "Ficcion"]'
+                     data-driveurl="https://vimeos.net/embed-yn6e1n7nots7.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/ayyJVOV5I4MGjti7nIHC3mVCagR.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Iron Man 2</div>
+                    </div>
+                </div>  
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Iron Man 3"
+                     data-year="2013"
+                     data-duration="2:10 min"
+                     data-rating="6.9"
+                     data-description="El descarado y brillante empresario Tony Stark/Iron Man se enfrentará a un enemigo cuyo poder no conoce límites. Cuando Stark comprende que su enemigo ha destruido su universo personal, se embarca en una angustiosa búsqueda para encontrar a los responsables. Este viaje pondrá a prueba su entereza una y otra vez. Acorralado, Stark tendrá que sobrevivir por sus propios medios, confiando en su ingenio y su instinto para proteger a las personas que quiere."
+                     data-genres='["Accion", "Aventura", "Ficcion"]'
+                     data-driveurl="https://vimeos.net/embed-31mv9i98j70m.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/cW0fOIZONkgeiMJDYzqUcgl4MUn.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Iron Man 3</div>
+                    </div>
+                </div>  
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Capitán América: El Primer Vengador"
+                     data-year="2011"
+                     data-duration="2:05 min"
+                     data-rating="7.0"
+                     data-description="Nacido durante la Gran Depresión, Steve Rogers creció como un chico enclenque en una familia pobre. Horrorizado por las noticias que llegaban de Europa sobre los nazis, decidió enrolarse en el ejército; sin embargo, debido a su precaria salud, fue rechazado una y otra vez. Enternecido por sus súplicas, el general Chester Phillips le ofrece la oportunidad de tomar parte en un experimento especial: la Operación Renacimiento. Tras meses de preparación y entrenamiento recibe su primera misión como Capitán América. Armado con un escudo indestructible y su inteligencia para la batalla, el Capitán América emprende la guerra contra el mal, como centinela de la libertad y como líder de los Vengadores."
+                     data-genres='["Accion", "Aventura", "Ficcion"]'
+                     data-driveurl="https://vimeos.net/embed-ybye35r5meme.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/82ucHZ4ioVGiweT1XMl1mUZaodq.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Capitán América: El Primer Vengador</div>
+                    </div>
+                </div> 
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Capitán América y el Soldado del Invierno"
+                     data-year="2014"
+                     data-duration="2:16 min"
+                     data-rating="7.7"
+                     data-description="Capitán América, Viuda Negra y un nuevo aliado, Falcon, se enfrentan a un enemigo inesperado mientras intentan sacar a la luz una conspiración que pone en riesgo al mundo."
+                     data-genres='["Accion", "Aventura", "Ficcion"]'
+                     data-driveurl="https://vimeos.net/embed-3m6m9u8jqux9.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/wP7JcCzpWlX5XeROpf4ox9ZVFT6.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Capitán América y el Soldado del Invierno</div>
+                    </div>
+                </div>  
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Capitán América: Civil War"
+                     data-year="2016"
+                     data-duration="2:27 min"
+                     data-rating="7.4"
+                     data-description="Capitán América: Civil War  Después de que otro incidente internacional involucre a Los Vengadores, causando varios daños colaterales, aumentan las presiones políticas para instaurar un sistema que exija más responsabilidades y que determine cuándo deben contratar los servicios del grupo de superhéroes. Esta nueva situación dividirá a Los Vengadores, mientras intentan proteger al mundo de un nuevo y terrible villano. Tercera entrega de la saga Capitán América."
+                     data-genres='["Accion", "Aventura", "Ficcion"]'
+                     data-driveurl="https://vimeos.net/embed-yc4tjiclp14d.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/jPPy7tCfglppQo6J9nGwU6UmJ8X.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Capitán América: Civil War</div>
+                    </div>
+                </div>  
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Capitán América: Un nuevo mundo"
+                     data-year="2025"
+                     data-duration="1:59 min"
+                     data-rating="6.1"
+                     data-description="Capitán América: Un nuevo mundo Tras reunirse con el recientemente electo presidente de los Estados Unidos Thaddeus Ross, Sam se encuentra en medio de un conflicto internacional. Debe descubrir la razón de un nefasto complot mundial antes de que el verdadero artífice detrás del mismo haga que el mundo entero entre en caos."
+                     data-genres='["Accion", "Aventura", "Ficcion"]'
+                     data-driveurl="https://vimeos.net/embed-5h7mm6q90a0r.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/pVMSRyAiye7gZ8NtuCt1qgbspY9.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Capitán América: Un nuevo mundo</div>
+                    </div>
+                </div>  
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Capitana Marvel"
+                     data-year="2019"
+                     data-duration="2:05 min"
+                     data-rating="6.8"
+                     data-description="Capitana Marvel es, en sus orígenes, Carol Susan Jane Danvers, la hermana mayor de tres hermanos criados en una familia tradicional de Boston. Durante años tuvo que soportar el machismo de su padre hasta cumplir los 18, donde se alistó en la Fuerza Aérea de Estados Unidos, para convertirse en piloto."
+                     data-genres='["Accion", "Aventura", "Ficcion"]'
+                     data-driveurl="https://vimeos.net/embed-63m53kh79cdc.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/5SPa7dZ85p54xa7E9tHRmfKq5ce.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Capitana Marvel</div>
+                    </div>
+                </div> 
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Hulk"
+                     data-year="2003"
+                     data-duration="2:05 min"
+                     data-rating="6.2"
+                     data-description="Bruce Banner un brillante investigador en el campo de la tecnología genética, oculta un pasado doloroso que lo ha dejado estigmatizado. Su antigua novia, la investigadora Betty Ross (Jennifer Connelly), que perdió la paciencia esperando que recuperara la estabilidad emocional, fue testigo de un grave accidente sufrido por Banner en el laboratorio: debido a una explosión el cuerpo del científico absorbió una dosis letal de rayos gamma; desde entonces, Banner empezó a sentir en su interior la presencia de un ente peligroso y, a la vez, oscuramente atractivo. Mientras tanto, Hulk, una criatura salvaje y prodigiosamente fuerte aparece esporádicamente, dejando tras de sí una estela de destrucción. Se trata de una situación de emergencia que exige la intervención del ejército, encabezado por el padre de Betty, el general Thunderbolt Ross. Betty es la única que sospecha que Bruce tiene algo que ver con Hulk."
+                     data-genres='["Accion", "Aventura", "Ficcion"]'
+                     data-driveurl="https://vimeos.net/embed-v42a3wspzrt2.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/iXZq1LvlsmR9PMryzcGmOt9vuZe.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">Hulk</div>
+                    </div>
+                </div> 
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="El Increíble Hulk"
+                     data-year="2008"
+                     data-duration="2:05 min"
+                     data-rating="6.2"
+                     data-description="El Increíble Hulk  El científico Bruce Banner (Edward Norton) recorre el mundo en busca de un antídoto que le permita librarse de su Alter Ego. Perseguido por el ejército y dominado por su propia rabia, es incapaz de sacarse de la cabeza a Betty Ross (Liv Tyler), por lo que decide volver a la civilización. Mientras se enfrenta a una extraña criatura, el agente de la KGB Emil Blonsky (Tim Roth) se expone a una dosis de radiación más intensa que la que convirtió a Bruce en Hulk. Emil hace responsable a Hulk de su terrible situación, y la ciudad de Nueva York se convierte en el escenario de la última batalla entre las dos criaturas más poderosas que jamás pisaron la Tierra."
+                     data-genres='["Accion", "Aventura", "Ficcion"]'
+                     data-driveurl="https://vimeos.net/embed-tyj8mnhpwx15.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/p4NYZXVtgKf6aiH65QzzkUVJcsd.jpg" alt="" loading="lazy">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">El Increíble Hulk</div>
+                    </div>
+                </div>   
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="She-Hulk: abogada Hulka"
+                     data-year="2022"
+                     data-duration="1 temporadas"
+                     data-rating="6.1"
+                     data-description="Jennifer Walters —una abogada especializada en derecho sobrehumano— tendrá que lidiar con los problemas típicos de una treintañera soltera que además resulta ser una Hulka verde de 2 metros"
+                     data-genres='["Comedia", "Fantasia", "Ficcion"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 9, "driveUrls": ["https://vimeos.net/embed-xy5kshx4nlmt.html", "https://vimeos.net/embed-3gj54fazjlw7.html", "https://vimeos.net/embed-38z85mjvcxi6.html", "https://vimeos.net/embed-9o293185qffl.html", "https://vimeos.net/embed-rpgbg1oniaq2.html", "https://vimeos.net/embed-47yuofg1kvlm.html", "https://vimeos.net/embed-c9k9e9s1mj36.html", "https://vimeos.net/embed-4j0ess9lv9j4.html", "https://vimeos.net/embed-vvvkcfsld6aa.html", ""]}]'>
+                     <img src="https://www.themoviedb.org/t/p/w1280/4ie82rXFa1rAJ9qTWoCvlljglLJ.jpg" alt=""loading="lazy">
+                    <div class="item-info"> <div class="item-type">Serie</div></div>
+                    <div class="item-title">She-Hulk: abogada Hulka</div>
+                   </div>
+                <!-- Thor: un mundo oscuro -->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Thor: un mundo oscuro"
+                     data-year="2013"
+                     data-duration="1:52 min"
+                     data-rating="6.5"
+                     data-description="Thor lucha por restablecer el orden en el cosmos, pero una antigua raza liderada por el vengativo Malekith regresa con el propósito de volver a sumir el universo en la oscuridad. Se trata de un villano con el que ni siquiera Odín y Asgard se atreven a enfrentarse; por esa razón, Thor tendrá que emprender un viaje muy peligroso, durante el cual se reunirá con Jane Foster y la obligará a sacrificarlo todo para salvar el mundo."
+                     data-genres='["Accion", "Aventura", "Ficcion"]'
+                     data-driveurl="https://vimeos.net/embed-l5wxq9xnt9jb.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/gPAmH41VpK5UPaNhAiNJePzrL8z.jpg" alt="Thor: un mundo oscuro" loading="lazy">
+                        <div class="item-type">6.5</div>
+                    </div>
+                    <div class="item-title">Thor: un mundo oscuro</div>
+                </div>  
+                
+                <!-- Thor: Ragnarok -->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Thor: Ragnarok"
+                     data-year="2017"
+                     data-duration="2:11 min"
+                     data-rating="7.6"
+                     data-description="Thor está preso al otro lado del universo sin su poderoso martillo y se enfrenta a una carrera contra el tiempo. Su objetivo es volver a Asgard y parar el Ragnarok porque significaría la destrucción de su planeta natal y el fin de la civilización Asgardiana a manos de una todopoderosa y nueva amenaza, la implacable Hela. Pero, primero deberá sobrevivir a una competición letal de gladiadores que lo enfrentará a su aliado y compañero en los Vengadores, ¡el Increíble Hulk!"
+                     data-genres='["Accion", "Aventura", "Ficcion", "Comedia"]'
+                     data-driveurl="https://vimeos.net/embed-nduk7g73feni.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/pGtkLdk4rnF2A3Yz2BHiTgRwMU4.jpg" alt="Thor: Ragnarok" loading="lazy">
+                        <div class="item-type">7.6</div>
+                    </div>
+                    <div class="item-title">Thor: Ragnarok</div>
+                </div> 
+                
+                <!-- Thor: Amor y Trueno -->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Thor: Amor y Trueno"
+                     data-year="2017"
+                     data-duration="1:58 min"
+                     data-rating="6.4"
+                     data-description="El Dios del Trueno emprende un viaje que no se parece en nada a lo que se ha enfrentado hasta ahora: una búsqueda de la paz interior. Pero el retiro de Thor se ve interrumpido por un asesino galáctico conocido como Gorr el Carnicero de Dioses. Para hacer frente a la amenaza, Thor solicita la ayuda de Valkiria, de Korg y de su ex novia Jane Foster que, para sorpresa de Thor, empuña su martillo mágico, Mjolnir, como la Poderosa Thor. Juntos, se embarcan en una aventura cósmica en la que tendrán que descubrir el misterio de la venganza del Carnicero de Dioses y detenerlo antes de que sea demasiado tarde."
+                     data-genres='["Accion", "Aventura", "Ficcion", "Comedia"]'
+                     data-driveurl="https://vimeos.net/embed-f6r9i5vo2bld.html">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/z9ajF6E39Hg2pXUofmUYgZHvdX.jpg" alt="Thor: Amor y Trueno" loading="lazy">
+                        <div class="item-type">6.4</div>
+                    </div>
+                    <div class="item-title">Thor: Amor y Trueno</div>
+                </div> 
+               
+                <!-- Loki (Serie) -->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Loki"
+                     data-year="2021"
+                     data-duration="2 temporadas"
+                     data-rating="8.2"
+                     data-description="Loki es llevado ante la misteriosa organización llamada AVT (Autoridad de Variación Temporal) después de los acontecimientos ocurridos en Avengers: Endgame (2019) y se le da a elegir enfrentarse a ser borrado de la existencia debido a que es una variante de tiempo o ayudar a arreglar la línea de tiempo y detener una amenaza mayor."
+                     data-genres='["Drama", "Fantasia", "Ficcion"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 6, "driveUrls": ["https://vimeos.net/embed-v08hq594wed4.html", "https://vimeos.net/embed-jl4hc983880x.html", "https://vimeos.net/embed-2krp3nzhv2y1.html", "https://vimeos.net/embed-2luprn3gy7n6.html", "https://vimeos.net/embed-4tb6yzu9yryo.html", "https://vimeos.net/embed-0077hexv32qf.html"]}, {"id": 2, "name": "Temporada 2", "episodes": 6, "driveUrls": ["https://vimeos.net/embed-4kuc5n0zdrce.html", "https://vimeos.net/embed-o2hhtk27sz1l.html", "https://vimeos.net/embed-id33437t5ln3.html", "https://vimeos.net/embed-a20apomeu8bw.html", "https://vimeos.net/embed-i5qboydb6psw.html", "https://vimeos.net/embed-417kvlb8j5ds.html"]} ]'
+                     data-poster="https://www.themoviedb.org/t/p/w1280/167xtTYu7qWn8dk2lzpYcPq1z0z.jpg"
+                     data-type="serie">
+                    <div class="item-image-container">
+                        <img src="https://www.themoviedb.org/t/p/w1280/167xtTYu7qWn8dk2lzpYcPq1z0z.jpg" alt="Loki" loading="lazy">
+                        <div class="item-type">Serie</div>
+                    </div>
+                    <div class="item-title">Loki</div>
+                </div>
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Los 4 Fantásticos: Primeros pasos"
+                     data-year="2025"
+                     data-duration="2:10 min"
+                     data-rating="7.2"
+                     data-description="Los 4 Fantásticos: Primeros pasos Con un estruendoso trasfondo en un mundo retrofuturista inspirado en los años 60, la Primera Familia de Marvel enfrenta su desafío más intimidante hasta ahora. Obligados a equilibrar sus roles como héroes con la fuerza de su vínculo familiar, deben defender la Tierra de un voraz dios espacial llamado Galactus y su enigmático heraldo, Silver Surfer."
+                     data-genres='["Acción", "Ficcion", "Aventura"]'
+                     data-poster="https://www.themoviedb.org/t/p/w1280/ckfiXWGEMWrUP53cc6QyHijLlhl.jpg"
+                     data-driveurl="https://vimeos.net/embed-f20c32y5y4ff.html">
+                    <img src="https://www.themoviedb.org/t/p/w1280/ckfiXWGEMWrUP53cc6QyHijLlhl.jpg" alt="">
+                    <div class="item-title">Los 4 Fantásticos: Primeros pasos</div>
+                </div> 
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Guardianes de la galaxia"
+                     data-year="2014"
+                     data-duration="2:01 min"
+                     data-rating="7.9"
+                     data-description="El temerario aventurero Peter Quill es objeto de un implacable cazarrecompensas después de robar una misteriosa esfera codiciada por Ronan, un poderoso villano cuya ambición amenaza todo el universo. Para poder escapar del incansable Ronan, Quill se ve obligado a pactar una complicada tregua con un cuarteto de disparatados inadaptados: Rocket, un mapache armado con un rifle, Groot, un humanoide con forma de árbol, la letal y enigmática Gamora y el vengativo Drax the Destroyer. Pero cuando Quill descubre el verdadero poder de la esfera, deberá hacer todo lo posible para derrotar a sus extravagantes rivales en un intento desesperado de salvar el destino de la galaxia."
+                     data-genres='["Acción", "Ficcion", "Aventura"]'
+                     data-driveurl="https://vimeos.net/embed-589w54p9ekag.html">
+                    <img src="https://www.themoviedb.org/t/p/w1280/zqZNnuMtrmK99Xux91KiCdnZxgb.jpg" alt="">
+                    <div class="item-title">Guardianes de la galaxia</div>
+                </div>  
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Guardianes de la galaxia 2"
+                     data-year="2017"
+                     data-duration="2:15 min"
+                     data-rating="7.6"
+                     data-description="Continúan las aventuras del equipo en su travesía por los confines del cosmos. Los Guardianes deberán luchar para mantener unida a su nueva familia mientras intentan resolver el misterio de los verdaderos orígenes de Peter Quill. Viejos rivales se convertirán en nuevos aliados, y queridos personajes de los cómics clásicos acudirán en ayuda de nuestros héroes a medida que el universo cinematográfico de Marvel continúa expandiéndose."
+                     data-genres='["Acción", "Ficcion", "Aventura"]'
+                     data-driveurl="https://vimeos.net/embed-hmeui6eew5st.html">
+                    <img src="https://www.themoviedb.org/t/p/w1280/kdg6Y06jfq9FV7qknWNcKLYtBJn.jpg" alt="">
+                    <div class="item-title">Guardianes de la galaxia 2</div>
+                </div>
+                <!-- Mundo Marvel-->
+                <div class="item" onclick="showMovieDetails(this)" 
+                     data-title="Guardianes de la galaxia 3"
+                     data-year="2023"
+                     data-duration="2:30 min"
+                     data-rating="7.9"
+                     data-description="La querida banda de los Guardianes se instala en Knowhere. Pero sus vidas no tardan en verse alteradas por los ecos del turbulento pasado de Rocket. Peter Quill, aún conmocionado por la pérdida de Gamora, debe reunir a su equipo en una peligrosa misión para salvar la vida de Rocket, una misión que, si no se completa con éxito, podría muy posiblemente conducir al final de los Guardianes tal y como los conocemos."
+                     data-genres='["Acción", "Ficcion", "Aventura"]'
+                     data-driveurl="https://vimeos.net/embed-r9w8kqjiq3pb.html">
+                    <img src="https://www.themoviedb.org/t/p/w1280/6GkKzdNosVAL7UGgwTtCHSxLQ67.jpg" alt="">
+                    <div class="item-title">Guardianes de la galaxia 3</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal" id="details-modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">×</span>
+            <div class="modal-flex">
+                <div class="modal-video-container" id="modal-video-container">
+                    <iframe class="modal-iframe" id="modal-iframe" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="modal-info">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="modal-title"></h2>
+                        <button class="favorite-btn" id="modal-favorite-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="modal-meta" id="modal-meta">
+                        <span><i class="fas fa-calendar"></i> <span id="modal-year"></span></span>
+                        <span><i class="fas fa-clock"></i> <span id="modal-duration"></span></span>
+                        <span><i class="fas fa-star"></i> <span id="modal-rating"></span></span>
+                    </div>
+                    <div class="genre-tags" id="modal-genres"></div>
+                    
+                    <div class="seasons-section" id="seasons-section" style="display: none;">
+                        <div class="seasons-header">
+                            <div class="season-selector">
+                                <button class="season-btn" id="season-btn">
+                                    Temporada 1 <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <div class="season-dropdown" id="season-dropdown"></div>
+                            </div>
+                            <div class="episodes-count">
+                                Episodios: <span id="episodes-count">0</span>
+                            </div>
+                        </div>
+                        <div id="episodes-buttons-container" class="episodes-scroll-container"></div>
+                    </div>
+                    
+                    <div id="modal-description-container"></div>
+                    
+                    <div class="recommendation-section" id="rec-section">
+                        <div class="recommendation-title">
+                            <i class="fas fa-thumbs-up"></i> Quizás te interese
+                        </div>
+                        <div class="recommendation-scroll" id="recommendation-scroll"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    <script>
+        // ===========================================
+        // SISTEMA DE HISTORIAL Y FAVORITOS
+        // ===========================================
+        
+        let watchHistory = JSON.parse(localStorage.getItem('cinetux_watch_history') || '[]');
+        
+        function saveWatchHistory() {
+            localStorage.setItem('cinetux_watch_history', JSON.stringify(watchHistory));
+        }
+        
+        function addToWatchHistoryOnPlay(item) {
+            if (!item || !item.title) return;
+            const existingIndex = watchHistory.findIndex(h => h.title === item.title);
+            if (existingIndex !== -1) watchHistory.splice(existingIndex, 1);
+            
+            const posterUrl = item.poster || 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(item.title);
+            
+            const historyItem = {
+                title: item.title, 
+                year: item.year, 
+                duration: item.duration, 
+                rating: item.rating,
+                description: item.description, 
+                genres: item.genres, 
+                driveurl: item.driveurl,
+                poster: posterUrl, 
+                type: item.type || (item.hasSeasons ? 'serie' : 'película'),
+                hasSeasons: item.hasSeasons || false, 
+                seasons: item.seasons || [], 
+                timestamp: new Date().toISOString()
+            };
+            watchHistory.unshift(historyItem);
+            if (watchHistory.length > 50) watchHistory = watchHistory.slice(0, 50);
+            saveWatchHistory();
+        }
+        
+        let favorites = JSON.parse(localStorage.getItem('cinetux_favorites') || '[]');
+        function saveFavorites() { localStorage.setItem('cinetux_favorites', JSON.stringify(favorites)); }
+        function isFavorite(title) { return favorites.some(fav => fav.title === title); }
+        function addFavorite(item) { 
+            if (!isFavorite(item.title)) { 
+                favorites.push(item); 
+                saveFavorites(); 
+                updateFavoriteButtonUI(true); 
+                showNotification(`✓ "${item.title}" añadido a favoritos`); 
+            } 
+        }
+        function removeFavorite(title) { 
+            favorites = favorites.filter(fav => fav.title !== title); 
+            saveFavorites(); 
+            updateFavoriteButtonUI(false); 
+            showNotification(`✗ Eliminado de favoritos`); 
+        }
+        function toggleFavorite(item) { 
+            if (isFavorite(item.title)) removeFavorite(item.title); 
+            else addFavorite(item); 
+        }
+        function updateFavoriteButtonUI(isFav) { 
+            const btn = document.getElementById('modal-favorite-btn');
+            if (btn) btn.innerHTML = isFav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>'; 
+        }
+        
+        // ===========================================
+        // FUNCIONES DE VIDEO Y MODAL
+        // ===========================================
+        let currentSeasons = [];
+        let currentSeasonIndex = 0;
+        let currentEpisodeIndex = 0;
+        let currentSeriesId = '';
+        let seriesProgress = {};
+        let isDescriptionExpanded = false;
+        let currentWatchHistoryItem = null;
+        let currentFavoriteItem = null;
+        
+        function loadSeriesProgress() { const saved = localStorage.getItem('seriesProgress'); if (saved) seriesProgress = JSON.parse(saved); }
+        function saveSeriesProgress() { localStorage.setItem('seriesProgress', JSON.stringify(seriesProgress)); }
+        function saveCurrentSeriesProgress() { if (currentSeriesId && currentSeasons.length) { seriesProgress[currentSeriesId] = { seasonIndex: currentSeasonIndex, episodeIndex: currentEpisodeIndex, lastWatched: new Date().toISOString() }; saveSeriesProgress(); } }
+        function loadSavedProgressForSeries(seriesId) { return seriesProgress[seriesId] || null; }
+        
+        function convertGoogleDriveUrl(url) {
+            if (!url || url.trim() === '') return '';
+            if (url.includes('/preview')) return url;
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) return `https://drive.google.com/file/d/${match[1]}/preview`;
+            if (url.includes('vimeo') || url.includes('youtube') || url.includes('vimeos.net') || url.includes('embed')) return url;
+            return '';
+        }
+        
+        function loadEmbedVideo(driveUrl) {
+            const container = document.getElementById('modal-video-container');
+            container.innerHTML = '<iframe class="modal-iframe" id="modal-iframe" frameborder="0" allowfullscreen></iframe>';
+            const newIframe = document.getElementById('modal-iframe');
+            if (!driveUrl || driveUrl.trim() === '') { 
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>No hay video disponible.</p></div>'; 
+                return; 
+            }
+            const embedUrl = convertGoogleDriveUrl(driveUrl);
+            if (embedUrl === '') { 
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>Enlace no válido.</p></div>'; 
+                return; 
+            }
+            newIframe.src = embedUrl;
+            newIframe.onload = function() { saveCurrentSeriesProgress(); if (currentWatchHistoryItem) addToWatchHistoryOnPlay(currentWatchHistoryItem); };
+        }
+        
+        function setupDescriptionWithReadMore(description) {
+            const container = document.getElementById('modal-description-container');
+            container.innerHTML = '';
+            const descDiv = document.createElement('div');
+            descDiv.className = 'modal-description collapsed';
+            descDiv.textContent = description || 'Sin descripción disponible.';
+            const readBtn = document.createElement('button');
+            readBtn.className = 'read-more-btn';
+            readBtn.innerHTML = 'Ver más <i class="fas fa-chevron-down"></i>';
+            const check = () => {
+                setTimeout(() => {
+                    const lineH = parseFloat(getComputedStyle(descDiv).lineHeight);
+                    const maxH = lineH * 3;
+                    if (descDiv.scrollHeight > maxH + 5) {
+                        readBtn.style.display = 'flex';
+                        descDiv.classList.add('collapsed');
+                        isDescriptionExpanded = false;
+                    } else {
+                        readBtn.style.display = 'none';
+                        descDiv.classList.remove('collapsed');
+                        isDescriptionExpanded = true;
+                    }
+                }, 50);
+            };
+            check();
+            window.addEventListener('resize', check);
+            readBtn.addEventListener('click', () => {
+                if (isDescriptionExpanded) {
+                    descDiv.classList.add('collapsed');
+                    readBtn.innerHTML = 'Ver más <i class="fas fa-chevron-down"></i>';
+                    readBtn.classList.remove('expanded');
+                    isDescriptionExpanded = false;
+                } else {
+                    descDiv.classList.remove('collapsed');
+                    readBtn.innerHTML = 'Ver menos <i class="fas fa-chevron-up"></i>';
+                    readBtn.classList.add('expanded');
+                    isDescriptionExpanded = true;
+                }
+            });
+            container.appendChild(descDiv);
+            container.appendChild(readBtn);
+        }
+        
+        function setupSeasonSelector() {
+            const dropdown = document.getElementById('season-dropdown');
+            const btn = document.getElementById('season-btn');
+            dropdown.innerHTML = '';
+            currentSeasons.forEach((season, idx) => {
+                const opt = document.createElement('div');
+                opt.className = `season-option ${idx === currentSeasonIndex ? 'active' : ''}`;
+                opt.dataset.index = idx;
+                opt.innerHTML = `<span>${season.name}</span>`;
+                opt.addEventListener('click', () => {
+                    currentSeasonIndex = parseInt(opt.dataset.index);
+                    btn.innerHTML = `${currentSeasons[currentSeasonIndex].name} <i class="fas fa-chevron-down"></i>`;
+                    document.querySelectorAll('.season-option').forEach(o => o.classList.remove('active'));
+                    opt.classList.add('active');
+                    loadSeason(currentSeasonIndex);
+                    dropdown.classList.remove('show');
+                    saveCurrentSeriesProgress();
+                });
+                dropdown.appendChild(opt);
+            });
+            btn.innerHTML = `${currentSeasons[currentSeasonIndex].name} <i class="fas fa-chevron-down"></i>`;
+            btn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('show'); });
+            document.addEventListener('click', () => dropdown.classList.remove('show'));
+        }
+        
+        function loadSeason(seasonIndex) {
+            const season = currentSeasons[seasonIndex];
+            if (!season) return;
+            document.getElementById('episodes-count').innerHTML = season.episodes;
+            const container = document.getElementById('episodes-buttons-container');
+            container.innerHTML = '';
+            const saved = seriesProgress[currentSeriesId];
+            let activeEp = (saved && saved.seasonIndex === seasonIndex) ? saved.episodeIndex : 0;
+            for (let i = 1; i <= season.episodes; i++) {
+                const epIdx = i - 1;
+                const btn = document.createElement('button');
+                btn.className = `episode-btn ${(epIdx === activeEp && seasonIndex === currentSeasonIndex) ? 'active' : ''}`;
+                btn.textContent = i;
+                btn.dataset.index = epIdx;
+                btn.dataset.seasonIndex = seasonIndex;
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.episode-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentEpisodeIndex = parseInt(btn.dataset.index);
+                    currentSeasonIndex = parseInt(btn.dataset.seasonIndex);
+                    const url = currentSeasons[currentSeasonIndex].driveUrls[currentEpisodeIndex];
+                    if (url && url.trim()) loadEmbedVideo(url);
+                    else {
+                        document.getElementById('modal-video-container').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>No hay video disponible.</p></div>';
+                    }
+                    saveCurrentSeriesProgress();
+                });
+                container.appendChild(btn);
+            }
+            setTimeout(() => {
+                const act = container.querySelector('.episode-btn.active');
+                if (act) act.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }, 100);
+        }
+        
+        // ===========================================
+        // OBTENER TODO EL CONTENIDO PARA RECOMENDACIONES
+        // ===========================================
+        function obtenerPosterDelElemento(el) {
+            let poster = el.getAttribute('data-poster');
+            if (poster) return poster;
+            
+            const img = el.querySelector('.item-image-container img');
+            if (img && img.src) return img.src;
+            
+            const anyImg = el.querySelector('img');
+            if (anyImg && anyImg.src) return anyImg.src;
+            
+            return null;
+        }
+        
+        function obtenerTodoElContenidoDesdeDOM() {
+            const items = [];
+            document.querySelectorAll('.item').forEach(el => {
+                const title = el.getAttribute('data-title');
+                if (!title) return;
+                
+                const poster = obtenerPosterDelElemento(el) || 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(title);
+                
+                items.push({
+                    title: title.trim(),
+                    year: el.getAttribute('data-year') || '',
+                    rating: el.getAttribute('data-rating') || '',
+                    duration: el.getAttribute('data-duration') || '',
+                    description: el.getAttribute('data-description') || '',
+                    genres: JSON.parse(el.getAttribute('data-genres') || '[]'),
+                    driveurl: el.getAttribute('data-driveurl') || '',
+                    poster: poster,
+                    type: el.getAttribute('data-type') || 'película',
+                    hasSeasons: el.getAttribute('data-has-seasons') === 'true',
+                    seasons: el.getAttribute('data-has-seasons') === 'true' ? JSON.parse(el.getAttribute('data-seasons') || '[]') : []
+                });
+            });
+            return items;
+        }
+        
+        function getRandomRecommendationsFromDOM(excludeTitle = null) {
+            let all = obtenerTodoElContenidoDesdeDOM();
+            if (excludeTitle) all = all.filter(c => c.title !== excludeTitle);
+            if (all.length === 0) return [];
+            for (let i = all.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [all[i], all[j]] = [all[j], all[i]];
+            }
+            return all.slice(0, 8);
+        }
+        
+        function renderRecommendationsInModal(currentTitle) {
+            const container = document.getElementById('recommendation-scroll');
+            if (!container) return;
+            const recs = getRandomRecommendationsFromDOM(currentTitle);
+            container.innerHTML = '';
+            if (recs.length === 0) {
+                container.innerHTML = `<div style="padding:20px;text-align:center;color:#888;">No hay más contenido disponible</div>`;
+                return;
+            }
+            recs.forEach(rec => {
+                const card = document.createElement('div');
+                card.className = 'rec-card';
+                const posterUrl = rec.poster || 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(rec.title);
+                card.innerHTML = `<img src="${posterUrl}" class="rec-poster" alt="${rec.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/100x150?text=${encodeURIComponent(rec.title)}'"><div class="rec-info"><div class="rec-title">${rec.title}</div></div>`;
+                
+                const original = Array.from(document.querySelectorAll('.item')).find(el => {
+                    const t = el.getAttribute('data-title');
+                    return t && t.trim() === rec.title;
+                });
+                
+                if (original) {
+                    const isSeries = original.getAttribute('data-has-seasons') === 'true';
+                    if (isSeries) {
+                        card.addEventListener('click', () => showSeriesDetails(original));
+                    } else {
+                        card.addEventListener('click', () => showMovieDetails(original));
+                    }
+                } else {
+                    const tmp = document.createElement('div');
+                    tmp.setAttribute('data-title', rec.title);
+                    tmp.setAttribute('data-year', rec.year || '');
+                    tmp.setAttribute('data-duration', rec.duration || '');
+                    tmp.setAttribute('data-rating', rec.rating || '');
+                    tmp.setAttribute('data-description', rec.description || '');
+                    tmp.setAttribute('data-genres', JSON.stringify(rec.genres || []));
+                    tmp.setAttribute('data-driveurl', rec.driveurl || '');
+                    tmp.setAttribute('data-type', rec.type || 'película');
+                    tmp.setAttribute('data-poster', posterUrl);
+                    if (rec.hasSeasons) {
+                        tmp.setAttribute('data-has-seasons', 'true');
+                        tmp.setAttribute('data-seasons', JSON.stringify(rec.seasons || []));
+                        card.addEventListener('click', () => showSeriesDetails(tmp));
+                    } else {
+                        card.addEventListener('click', () => showMovieDetails(tmp));
+                    }
+                }
+                container.appendChild(card);
+            });
+        }
+        
+        // ===========================================
+        // MOSTRAR DETALLES
+        // ===========================================
+        function showMovieDetails(element) {
+            document.getElementById('seasons-section').style.display = 'none';
+            const title = element.getAttribute('data-title');
+            const year = element.getAttribute('data-year');
+            const duration = element.getAttribute('data-duration');
+            const rating = element.getAttribute('data-rating');
+            const description = element.getAttribute('data-description');
+            const genres = JSON.parse(element.getAttribute('data-genres') || '[]');
+            const driveUrl = element.getAttribute('data-driveurl');
+            const type = element.getAttribute('data-type') || 'película';
+            let poster = element.getAttribute('data-poster');
+            if (!poster) {
+                const img = element.querySelector('.item-image-container img');
+                if (img && img.src) poster = img.src;
+            }
+            if (!poster) poster = 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(title);
+            
+            currentFavoriteItem = {
+                title, year, duration, rating, description, genres,
+                driveurl: driveUrl, poster, type, hasSeasons: false
+            };
+            currentWatchHistoryItem = currentFavoriteItem;
+            loadEmbedVideo(driveUrl);
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-year').textContent = year;
+            document.getElementById('modal-duration').textContent = duration;
+            document.getElementById('modal-rating').textContent = rating;
+            const mg = document.getElementById('modal-genres');
+            mg.innerHTML = '';
+            if (genres && Array.isArray(genres)) {
+                genres.forEach(g => { const tag = document.createElement('div'); tag.className = 'genre-tag'; tag.textContent = g; mg.appendChild(tag); });
+            }
+            setupDescriptionWithReadMore(description || 'Sin descripción disponible.');
+            renderRecommendationsInModal(title);
+            updateFavoriteButtonUI(isFavorite(title));
+            document.getElementById('details-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function showSeriesDetails(element) {
+            const title = element.getAttribute('data-title');
+            const year = element.getAttribute('data-year');
+            const duration = element.getAttribute('data-duration');
+            const rating = element.getAttribute('data-rating');
+            const description = element.getAttribute('data-description');
+            const genres = JSON.parse(element.getAttribute('data-genres') || '[]');
+            const driveUrl = element.getAttribute('data-driveurl');
+            const type = element.getAttribute('data-type') || 'serie';
+            const hasSeasons = element.getAttribute('data-has-seasons') === 'true';
+            let poster = element.getAttribute('data-poster');
+            if (!poster) {
+                const img = element.querySelector('.item-image-container img');
+                if (img && img.src) poster = img.src;
+            }
+            if (!poster) poster = 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(title);
+            const seasonsData = hasSeasons ? JSON.parse(element.getAttribute('data-seasons') || '[]') : [];
+            
+            currentFavoriteItem = {
+                title, year, duration, rating, description, genres,
+                driveurl: driveUrl, poster, type, hasSeasons, seasons: seasonsData
+            };
+            currentWatchHistoryItem = currentFavoriteItem;
+            currentSeriesId = title.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-year').textContent = year;
+            document.getElementById('modal-duration').textContent = duration;
+            document.getElementById('modal-rating').textContent = rating;
+            const mg = document.getElementById('modal-genres');
+            mg.innerHTML = '';
+            if (genres && Array.isArray(genres)) {
+                genres.forEach(g => { const tag = document.createElement('div'); tag.className = 'genre-tag'; tag.textContent = g; mg.appendChild(tag); });
+            }
+            setupDescriptionWithReadMore(description || 'Sin descripción disponible.');
+            if (hasSeasons && seasonsData.length > 0) {
+                document.getElementById('seasons-section').style.display = 'block';
+                currentSeasons = seasonsData;
+                const saved = loadSavedProgressForSeries(currentSeriesId);
+                if (saved) { currentSeasonIndex = saved.seasonIndex; currentEpisodeIndex = saved.episodeIndex; }
+                else { currentSeasonIndex = 0; currentEpisodeIndex = 0; }
+                setupSeasonSelector();
+                loadSeason(currentSeasonIndex);
+                if (currentSeasons.length > currentSeasonIndex && 
+                    currentSeasons[currentSeasonIndex].driveUrls && 
+                    currentSeasons[currentSeasonIndex].driveUrls.length > currentEpisodeIndex && 
+                    currentSeasons[currentSeasonIndex].driveUrls[currentEpisodeIndex]) {
+                    loadEmbedVideo(currentSeasons[currentSeasonIndex].driveUrls[currentEpisodeIndex]);
+                } else if (driveUrl) {
+                    loadEmbedVideo(driveUrl);
+                } else {
+                    document.getElementById('modal-video-container').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>No hay video disponible.</p></div>';
+                }
+            } else {
+                document.getElementById('seasons-section').style.display = 'none';
+                loadEmbedVideo(driveUrl);
+            }
+            renderRecommendationsInModal(title);
+            updateFavoriteButtonUI(isFavorite(title));
+            document.getElementById('details-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModalAndSave() {
+            saveCurrentSeriesProgress();
+            document.getElementById('details-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('modal-video-container').innerHTML = '<iframe class="modal-iframe" id="modal-iframe" frameborder="0" allowfullscreen></iframe>';
+            currentSeasons = [];
+            currentSeasonIndex = 0;
+            currentEpisodeIndex = 0;
+            currentSeriesId = '';
+            isDescriptionExpanded = false;
+            currentWatchHistoryItem = null;
+        }
+        
+        // ===========================================
+        // NOTIFICACIONES Y BÚSQUEDA
+        // ===========================================
+        function showNotification(msg) {
+            const n = document.getElementById('notification');
+            n.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`;
+            n.style.display = 'block';
+            setTimeout(() => n.style.display = 'none', 2000);
+        }
+        
+        function searchMovies() {
+            const term = document.getElementById('search-input').value.toLowerCase().trim();
+            const resultsContainer = document.getElementById('search-results-container');
+            const resultsGrid = document.getElementById('search-results-grid');
+            if (term === '') {
+                resultsContainer.style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                return;
+            }
+            document.getElementById('main-content').style.display = 'none';
+            resultsContainer.style.display = 'block';
+            resultsGrid.innerHTML = '';
+            let has = false;
+            document.querySelectorAll('.item').forEach(item => {
+                const title = item.getAttribute('data-title');
+                if (title && title.toLowerCase().includes(term)) {
+                    has = true;
+                    const clone = item.cloneNode(true);
+                    clone.onclick = function(e) {
+                        const original = item;
+                        if (original.getAttribute('data-has-seasons') === 'true') {
+                            showSeriesDetails(original);
+                        } else {
+                            showMovieDetails(original);
+                        }
+                    };
+                    resultsGrid.appendChild(clone);
+                }
+            });
+            if (!has) {
+                resultsGrid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;"><i class="fas fa-search" style="font-size:3rem;"></i><h3>No se encontraron resultados</h3></div>`;
+            }
+        }
+        
+        // ===========================================
+        // INICIALIZACIÓN
+        // ===========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSeriesProgress();
+            
+            // Tema
+            document.getElementById('theme-toggle').addEventListener('click', () => {
+                document.body.classList.toggle('light-theme');
+                const icon = document.getElementById('theme-toggle').querySelector('i');
+                if (document.body.classList.contains('light-theme')) {
+                    icon.className = 'fas fa-sun';
+                } else {
+                    icon.className = 'fas fa-moon';
+                }
+                localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+            });
+            if (localStorage.getItem('theme') === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('theme-toggle').querySelector('i').className = 'fas fa-sun';
+            }
+            
+            // Modal close
+            document.getElementById('close-modal').addEventListener('click', closeModalAndSave);
+            window.addEventListener('click', (e) => {
+                if (e.target === document.getElementById('details-modal')) closeModalAndSave();
+            });
+            
+            // Fav button
+            document.getElementById('modal-favorite-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (currentFavoriteItem) toggleFavorite(currentFavoriteItem);
+            });
+            
+            // Search
+            let searchTimeout;
+            document.getElementById('search-input').addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(searchMovies, 300);
+            });
+        });
+    </script>
+</body>
+</html>
