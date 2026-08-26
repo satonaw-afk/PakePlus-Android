@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CINETUX - Streaming</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-color: #141414;
+            --text-color: #ffffff;
+            --primary-color: #e50914;
+            --secondary-color: #303030;
+            --hover-color: #b20710;
+            --favorite-color: #ff4d4d;
+            --card-width: 110px;
+            --card-height: 150px;
+        }
+
+        .light-theme {
+            --bg-color: #f4f4f4;
+            --text-color: #333333;
+            --primary-color: #e50914;
+            --secondary-color: #dddddd;
+            --hover-color: #b20710;
+            --favorite-color: #e50914;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            padding-bottom: 20px;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 15px;
+            background-color: var(--bg-color);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            top: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            height: 50px;
+            transition: all 0.3s ease;
+            gap: 10px;
+        }
+
+        .logo {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .logo-pelis { color: var(--primary-color); }
+        .logo-tux { color: grey; }
+
+        .search-container {
+            flex: 1;
+            min-width: 0;
+            max-width: 300px;
+            position: relative;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 6px 6px 6px 32px;
+            border: none;
+            border-radius: 20px;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            font-size: 0.8rem;
+            height: 32px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .content-container {
+            padding: 60px 15px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 0.95rem;
+            padding-left: 8px;
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title i {
+            color: var(--primary-color);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 14px;
+            padding: 4px 0 12px;
+        }
+
+        /* ===== ESTILO DE TARJETA IGUAL AL PRIMER CÓDIGO ===== */
+        .item {
+            flex: 0 0 auto;
+            cursor: pointer;
+            transition: transform 0.3s;
+            background: none;
+            border-radius: 8px;
+            overflow: visible;
+            box-shadow: none;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item:hover {
+            transform: scale(1.02);
+        }
+
+        .item-image-container {
+            position: relative;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            background-color: #1a1a1a;
+            aspect-ratio: 2/3;
+        }
+
+        .item-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s;
+        }
+
+        .item:hover .item-image-container img {
+            transform: scale(1.03);
+        }
+
+        .item-title {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-top: 6px;
+            text-align: center;
+            color: var(--text-color);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+            padding: 0 2px;
+        }
+
+        .item-type {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            background: var(--primary-color);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .item-rating {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(0,0,0,0.7);
+            color: #ffd700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        /* ===== FIN ESTILO TARJETA ===== */
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 200;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--primary-color);
+            background: rgba(0,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .modal-flex {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-video-container {
+            width: 100%;
+            height: 30vh;
+            position: relative;
+            background-color: #000;
+        }
+
+        .modal-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .modal-info {
+            padding: 12px 15px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .favorite-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+            transition: all 0.3s ease;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .favorite-btn.active {
+            color: var(--favorite-color);
+        }
+
+        .favorite-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .modal-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 12px;
+            font-size: 0.75rem;
+        }
+
+        .modal-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .modal-meta i {
+            color: var(--primary-color);
+        }
+
+        .genre-tags {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0 12px;
+            flex-wrap: wrap;
+        }
+
+        .genre-tag {
+            background-color: var(--secondary-color);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+        }
+
+        .modal-description {
+            margin-bottom: 0;
+            line-height: 1.4;
+            font-size: 0.85rem;
+            position: relative;
+            color: var(--text-color);
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .modal-description.collapsed {
+            max-height: 4.5em;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+        
+        .modal-description.expanded {
+            max-height: none;
+            display: block;
+            -webkit-line-clamp: unset;
+        }
+
+        .read-more-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 5px 0;
+            margin-top: 4px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+            width: fit-content;
+        }
+
+        .read-more-btn:hover {
+            opacity: 0.8;
+        }
+
+        .read-more-btn i {
+            font-size: 0.7rem;
+            transition: transform 0.3s ease;
+        }
+
+        .read-more-btn.expanded i {
+            transform: rotate(180deg);
+        }
+
+        .seasons-section {
+            margin: 12px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--secondary-color);
+        }
+
+        .seasons-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .season-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .season-btn {
+            background-color: var(--secondary-color);
+            border: none;
+            color: var(--text-color);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .season-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .season-btn i {
+            font-size: 0.7rem;
+        }
+
+        .episodes-count {
+            font-size: 0.7rem;
+            color: #aaa;
+            font-weight: 500;
+        }
+
+        .episodes-count span {
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .season-dropdown {
+            position: absolute;
+            background-color: var(--bg-color);
+            border: 1px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 10px 0;
+            min-width: 150px;
+            z-index: 50;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+            top: 45px;
+            left: 0;
+        }
+
+        .season-dropdown.show {
+            display: block;
+        }
+
+        .season-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .season-option:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .season-option.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .episodes-scroll-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 5px 0;
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .episodes-scroll-container::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .episodes-scroll-container::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+        }
+
+        .episodes-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+        }
+
+        .episode-btn {
+            flex: 0 0 auto;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            border: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .episode-btn:hover {
+            background-color: #444;
+            transform: scale(1.05);
+        }
+
+        .episode-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .recommendation-section {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid var(--secondary-color);
+        }
+
+        .recommendation-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-color);
+        }
+
+        .recommendation-title i {
+            color: var(--primary-color);
+        }
+
+        .recommendation-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            scroll-behavior: smooth;
+            padding-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .recommendation-scroll::-webkit-scrollbar {
+            height: 0px;
+        }
+
+        .rec-card {
+            flex: 0 0 auto;
+            width: 110px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            background: var(--secondary-color);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            position: relative;
+            aspect-ratio: 2/3;
+        }
+
+        .rec-card:hover {
+            transform: scale(1.05);
+        }
+
+        .rec-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .rec-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 5px 3px;
+        }
+
+        .rec-title {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .search-results-container {
+            padding: 10px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .search-results-title {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .search-results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            padding: 10px 0;
+        }
+
+        .search-results-grid .item {
+            width: 100%;
+        }
+
+        .search-results-grid .item .item-image-container {
+            aspect-ratio: 2/3;
+        }
+
+        .notification {
+            position: fixed;
+            top: 55px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            box-shadow: 0 5px 5px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+            font-size: 0.9rem;
+            max-width: 80%;
+        }
+
+        /* LANDSCAPE MODAL */
+        @media (orientation: landscape) and (max-width: 1500px) {
+            .modal-flex {
+                flex-direction: row;
+                align-items: stretch;
+                min-height: 100vh;
+            }
+            
+            .modal-video-container {
+                width: 50%;
+                height: auto;
+                position: sticky;
+                top: 0;
+                align-self: flex-start;
+                min-height: 100vh;
+                order: 2;
+            }
+            
+            .close-btn {
+                position: fixed;
+                top: 10px;
+                right: 12px;
+                z-index: 1000;
+                background: rgba(0,0,0,0.7);
+                width: 35px;
+                height: 35px;
+                font-size: 1.5rem;
+            }
+            
+            .modal-info {
+                width: 50%;
+                padding: 10px 12px;
+                overflow-y: auto;
+                max-height: 100%;
+                display: flex;
+                flex-direction: column;
+                order: 1;
+            }
+            
+            .modal-title {
+                font-size: 1.1rem;
+            }
+            
+            .favorite-btn {
+                font-size: 1.3rem;
+            }
+            
+            .modal-meta {
+                margin-bottom: 8px;
+                gap: 10px;
+                font-size: 0.7rem;
+            }
+            
+            .genre-tags {
+                margin: 6px 0 8px;
+            }
+            
+            .genre-tag {
+                padding: 3px 8px;
+                font-size: 0.65rem;
+            }
+            
+            .seasons-section {
+                margin: 8px 0;
+            }
+            
+            .episode-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 0.8rem;
+            }
+            
+            .recommendation-section {
+                margin-top: auto;
+            }
+            
+            .rec-card {
+                width: 90px;
+            }
+        }
+
+        @media (min-width: 600px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 18px;
+            }
+            .modal-video-container {
+                height: 40vh;
+            }
+            .section-title {
+                font-size: 1.1rem;
+            }
+            .logo {
+                font-size: 1.4rem;
+            }
+            .search-container {
+                max-width: 350px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+                gap: 10px;
+            }
+            .modal-video-container {
+                height: 25vh;
+            }
+            .modal-title {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification">
+        <i class="fas fa-external-link-alt"></i> Redirigiendo al reproductor...
+    </div>
+    
+    <header>
+        <div class="logo">
+            <span class="logo-pelis">Recientes</span><span class="logo-tux"></span>
+        </div>
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="search-input" placeholder="Buscar películas o series...">
+        </div>
+        <button class="theme-toggle" id="theme-toggle">
+            <i class="fas fa-moon"></i>
+        </button>
+    </header>
+
+    <div class="search-results-container" id="search-results-container">
+        <h3 class="search-results-title">
+            <i class="fas fa-search"></i> Resultados de búsqueda
+        </h3>
+        <div class="search-results-grid" id="search-results-grid"></div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="content-container" id="main-content">
+        <div class="section">
+            <div class="section-header">
+            <div class="grid-container" id="catalog-grid">
+               
+                <!-- Series Recientes-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Aranyak"
+                     data-year="2021"
+                     data-duration="1 temporadas"
+                     data-rating="7.0"
+                     data-description="Tretas políticas, intereses personales y un mito bestial salen a la luz cuando un par de policías incompatibles investiga a los sospechosos de un misterioso asesinato."
+                     data-genres='["Drama", "Crimen", "Misterio"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 8, "driveUrls": ["https://vimeos.net/embed-zau6wxfprzhi.html", "https://vimeos.net/embed-0hyvqpynfc9y.html", "https://goodstream.one/embed-qmll3nvsf9eb.html", "https://vimeos.net/embed-f0ez28ovmh12.html", "https://doodstream.com/e/55rq9zypf7ji", "https://goodstream.one/embed-4iz9z8ad6q5s.html", "https://goodstream.one/embed-9cpl1vz7oom2.html", "https://goodstream.one/embed-nb2issz9i175.html", "", "", "", ""]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w1280/3YgODvXTkNiYBbiqv56yHDVuZkZ.jpg" alt=""><div class="item-type">7.8</div></div>
+                    <div class="item-title">Aranyak</div>
+                </div>
+                <!-- Series Recientes-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Soy Luna: Volver a rodar"
+                     data-year="2026"
+                     data-duration="1 temporadas"
+                     data-rating="7.4"
+                     data-description="Después de un misterioso accidente que la alejó de las pistas, Luna regresa a su querido Jam & Roller, el lugar que la vio crecer y convertirse en una patinadora reconocida. Volver a ponerse los patines no será fácil, y mucho menos cuando el plan de un villano oculto comience a complicarle el camino. Entre canciones nuevas y clásicos inolvidables, aventuras, reencuentros con amigos y viejas heridas que vuelven a abrirse, Luna deberá enfrentar traiciones, obstáculos y un dilema del corazón al debatirse entre amores del pasado. En esta nueva aventura, Luna luchará por dejar atrás lo que la lastimó y entender que las historias que nos contamos pueden cambiar nuestro destino. Y, con la ayuda de sus patines, hará todo lo posible por volver a sentir esas “alas en los pies” que tanto extrañaba."
+                     data-genres='["Drama", "Familia", "Comedia"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 12, "driveUrls": ["https://lacloud.live/f2dce7d9a1ba837a", "https://lacloud.live/bb05fac76635e03b", "https://lacloud.live/9a4fc3606003e4ef", "https://lacloud.live/5b39401f20a74ca9", "https://lacloud.live/ef88d88b3e30294f", "https://lacloud.live/bfe1bb33da77d3aa", "https://lacloud.live/566efed3d577ca39", "https://lacloud.live/c61d844143152e31", "https://lacloud.live/05c13020f245c51a", "https://lacloud.live/f148952d2b264d04", "https://lacloud.live/af69251c2dc4cb25", "https://lacloud.live/c4c908d300c6c8f8"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w1280/3gzwiyE7jHHvjWS8WBEqztCqxD9.jpg" alt=""><div class="item-type">7.8</div></div>
+                    <div class="item-title">Soy Luna: Volver a rodar</div>
+                </div>
+               <!-- Series Recientes-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Furioso"
+                     data-year="2026"
+                     data-duration="1 temporadas"
+                     data-rating="7.8"
+                     data-description="Un hombre herido y amnésico encuentra refugio en un entrenador de MMA. Atrapado entre la esperanza de un nuevo futuro y el tormento de un pasado peligroso, empieza a luchar."
+                     data-genres='["Drama", "Crimen"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 6, "driveUrls": ["https://lacloud.live/8ad2828b5af020c1", "https://lacloud.live/324bd363257b9282", "https://lacloud.live/1a67d42551c6cc5e", "https://lacloud.live/ca9ff008696d0ef0", "https://lacloud.live/793a82f7835a496f", "https://lacloud.live/b53d3a2cd1b3f64f"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w1280/sg4QZgXllPD3WgXRhgruIzQfl0U.jpg" alt=""><div class="item-type">7.8</div></div>
+                    <div class="item-title">Furioso</div>
+                </div>
+               <!-- Series Recientes-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Privilegios"
+                     data-year="2026"
+                     data-duration="1 temporadas"
+                     data-rating="4.6"
+                     data-description="La joven reclusa Adèle Charki (Manon Bresch) acepta desesperadamente un puesto de botones en el hotel de lujo parisino Citadel, como parte de un programa de reinserción dirigido por el todopoderoso director del hotel, Édouard Galzain (Melvil Poupaud). Pero poco después de llegar a su primer turno, Adèle se ve envuelta en una lucha de poder no tan secreta en la que el ambicioso personal, los huéspedes influyentes y las redes externas luchan por el control, convirtiendo el hotel en un caldo de cultivo de manipulación y traición. A medida que su relación con Édouard se transforma rápidamente en algo más siniestro, la determinación y la ambición de Adèle son cruciales para su supervivencia, mientras lucha por una oportunidad de redimir su futuro."
+                     data-genres='["Drama"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 6, "driveUrls": ["https://vimeos.net/embed-8bjnya8812ts.html", "https://vimeos.net/embed-l6zay7y11rmw.html", "https://vimeos.net/embed-j7ptsuka2pg8.html", "https://vimeos.net/embed-kouckq598w1e.html", "https://vimeos.net/embed-6i00y26t5maw.html", "https://vimeos.net/embed-q0obblfdyvqz.html"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w600_and_h900_face/ePEXjhbI5zS84nILMXOiC9razo1.jpg" alt=""><div class="item-type">4.6</div></div>
+                    <div class="item-title">Privilegios</div>
+                </div>     
+             <!-- Series Recientes-->
+             <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="No tengo miedo"
+                     data-year="2026"
+                     data-duration="1 temporadas"
+                     data-rating="8.2"
+                     data-description="En 1986, en Veracruz, un niño de diez años encuentra a otro niño atrapado en un agujero cerca de su casa. La historia examina la pobreza, la inocencia infantil y los secretos familiares durante la Copa Mundial, incluido el gol de Maradona con la «Mano de Dios»."
+                     data-genres='["Drama"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 6, "driveUrls": ["https://vimeos.net/embed-x90yoz3bnkyq.html", "https://vimeos.net/embed-u1925noccd9r.html", "https://vimeos.net/embed-2bp0esh94wuk.html", "https://vimeos.net/embed-7421lsftkst6.html", "https://vimeos.net/embed-kxt8szzindhz.html", "https://vimeos.net/embed-1dz19fquheaq.html"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w600_and_h900_face/ctDqarHjLlrKhKx1j7N4rF746qQ.jpg" alt=""><div class="item-type">8.7</div></div>
+                    <div class="item-title">No tengo miedo</div>
+                </div>     
+                <!-- Series Recientes-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Spider-Noir"
+                     data-year="2026"
+                     data-duration="1 temporadas"
+                     data-rating="8.5"
+                     data-description="Al detective privado Ben Reilly lo contratan para un par de casos sencillos... hasta que unos mafiosos, unos monstruos y una femme fatale misteriosa tejen una red que lo obliga a encarar su antigua vida como el único superhéroe de Nueva York: La Araña."
+                     data-genres='["Drama", "Misterio", "Crimen"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 8, "driveUrls": ["https://vimeos.net/embed-bndbpvwx9tch.html", "https://vimeos.net/embed-mdcdlperxdn9.html", "https://vimeos.net/embed-mmjnqylzsc1t.html", "https://vimeos.net/embed-fr7lsrakby7q.html", "https://vimeos.net/embed-ghqmdhoj8kpk.html", "https://vimeos.net/embed-08c9lcpf12xc.html", "https://vimeos.net/embed-wkxsn8fk1ah0.html", "https://vimeos.net/embed-yfkuzhyx005z.html"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w600_and_h900_face/4Pec5a1At5UMeADkgcxwf6nLqau.jpg" alt=""><div class="item-type">8.7</div></div>
+                    <div class="item-title">Spider-Noir</div>
+                </div>      
+            <!-- Series Recientes-->
+            <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Elle: Legalmente rubia"
+                     data-year="2026"
+                     data-duration="1 temporadas"
+                     data-rating="8.1"
+                     data-description="Antes de ser un pez fuera del agua en Harvard, en 1995, Elle Woods fue un pez en las aguas tumultuosas de la preparatoria donde se enfrenta a amistades complicadas, un romance prohibido y elecciones cuestionables de moda. En este inesperado capítulo de su adolescencia, descubrimos las experiencias que convirtieron a Elle en la icónica mujer que conocemos y amamos."
+                     data-genres='["Drama", "Comedia"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 8, "driveUrls": ["https://vimeos.net/embed-h5a80vgevrp7.html", "https://vimeos.net/embed-pbl044jsodge.html", "https://vimeos.net/embed-pcypbwu6jzrd.html", "https://vimeos.net/embed-n5wawjm1kg64.html", "https://vimeos.net/embed-d4gb1nkzi3pl.html", "https://vimeos.net/embed-gl9gbzwkvijo.html", "https://vimeos.net/embed-ibd2r5g0o59d.html", "https://vimeos.net/embed-2ee1rwd93oy3.html"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w600_and_h900_face/l6jvLcGXXK8CZqbSXHJ3FpOQxgn.jpg" alt=""><div class="item-type">8.7</div></div>
+                    <div class="item-title">Elle: Legalmente rubia</div>
+                </div>            
+            <!-- Series Recientes-->
+            <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Errores épicos"
+                     data-year="2026"
+                     data-duration="1 temporadas"
+                     data-rating="8.7"
+                     data-description="Dos hermanos muy incompetentes se ven obligados a trabajar para gente muy peligrosa... y acaban convirtiéndose en el dúo más desorganizado del crimen organizado."
+                     data-genres='["Crimen", "Comedia"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 8, "driveUrls": ["https://vimeos.net/embed-qcbzjf2pgc9b.html", "https://vimeos.net/embed-qe7eidfd40tx.html", "https://vimeos.net/embed-n6de1qrzakpn.html", "https://vimeos.net/embed-x5b7note6lgd.html", "https://vimeos.net/embed-rk38dynriupb.html", "https://vimeos.net/embed-1eft6yu8dh3t.html", "https://vimeos.net/embed-cqirtikb9tpo.html", "https://vimeos.net/embed-r04puerx5hly.html"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w1280/mgXTCQ86lV3oudr2KXXO5zGEqIb.jpg" alt=""><div class="item-type">8.7</div></div>
+                    <div class="item-title">Errores épicos</div>
+                </div>
+            <!-- Series Recientes-->
+            <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Stranger Things"
+                     data-year="2016"
+                     data-duration="4 temporadas"
+                     data-rating="8.7"
+                     data-description="Cuando un niño desaparece, su madre, el jefe de policía y sus amigos deben enfrentarse a fuerzas terroríficas para recuperarlo, mientras descubren secretos de un laboratorio gubernamental y dimensiones alternativas."
+                     data-genres='["Drama", "Fantasia", "Terror"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 8, "driveUrls": ["https://drive.google.com/file/d/1QJYsCLaJEEYGKpvakpOuNYKlj3sKxS2Q/preview?usp=drive_link", "", "", "", "", "", "", ""]}]'>
+                    <div class="item-image-container"><img src="https://www.whats-on-netflix.com/wp-content/uploads/covers-2024/strangerthings.jpeg" alt="Stranger Things"><div class="item-type">8.7</div></div>
+                    <div class="item-title">Stranger Things</div>
+                </div>
+                <!-- Series Recientes-->
+               <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Para toda la humanidad"
+                     data-year="2019"
+                     data-duration="1 temporadas"
+                     data-rating="7.7"
+                     data-description="Imagina un mundo donde la carrera espacial global nunca terminó. Entra en un cautivante "qué pasaría si" en la historia, donde el programa espacial de la NASA sigue siendo la pieza central cultural de las esperanzas y sueños de Estados Unidos."
+                     data-genres='["Drama", "Fantasia", "Ficcion"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 4, "driveUrls": ["https://vimeos.net/embed-rxrytd7f505m.html", "https://vimeos.net/embed-p6q5g4uhjor0.html", "https://vimeos.net/embed-wzwf2t175z34.html", "https://vimeos.net/embed-qs8y1k2httw9.html"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w1280/5Y6VNHILuyw5Dc9o7xyC5u6arG1.jpg" alt=""><div class="item-type"></div></div>
+                    <div class="item-title">Para toda la humanidad</div>
+                </div>
+               <!-- Series Recientes-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Resident Evil: La tiniebla infinita"
+                     data-year="2021"
+                     data-duration="1 temporadas"
+                     data-rating="7.8"
+                     data-description="Años después de los horrores de Raccoon City, Leon y Claire se ven atrapados en una oscura conspiración cuando un ataque viral devasta la Casa Blanca."
+                     data-genres='["Drama", "Animacion", "Crimen", "Ficcion"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 4, "driveUrls": ["https://vimeos.net/embed-gbvf44531iw0.html", "https://vimeos.net/embed-60j7ni5k4aig.html", "https://vimeos.net/embed-f94ei27l94n8.html", "https://vimeos.net/embed-huyhu2109jq6.html"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w600_and_h900_face/fX9g0ULNjF0e7ESBBlsdo4QMcVG.jpg" alt="" ><div class="item-type"></div></div>
+                    <div class="item-title">Resident Evil: La tiniebla infinita</div>
+                </div>
+                <!-- Series Recientes-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Beso de sirena"
+                     data-year="2026"
+                     data-duration="1 temporadas"
+                     data-rating="5.8"
+                     data-description="El investigador de fraudes al seguro Cha Woo-seok recibe una misteriosa llamada de una informante que afirma tener pruebas de un asesinato relacionado con un fraude. Antes de revelar la verdad, la informante muere. La investigación de Woo-seok lo lleva a la Subastas Royal y a su subastadora principal, Han Seol-ah, cuyos tres prometidos han muerto en circunstancias sospechosas. Para revelar la verdad, o quizás para ponerla a prueba, Woo-seok propone fingir una relación. Al descubrir sus secretos, se da cuenta de que podría haber caído en una red de la que no puede escapar, y que escapar podría costarle todo."
+                     data-genres='["Drama", "Misterio", "Crimen"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 6, "driveUrls": ["https://vimeos.net/embed-epewq2w9imeu.html", "https://vimeos.net/embed-z39g03vvfnct.html", "https://vimeos.net/embed-eqbj3vnuc8vo.html", "https://vimeos.net/embed-79u83pnxi570.html", "https://vimeos.net/embed-1ldykjgu50ef.html", "https://vimeos.net/embed-0rujgm8vee95.html"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w1280/x4Se5oHeTmA6NuDuYVP2nQWTjtU.jpg" alt="" ><div class="item-type"></div></div>
+                    <div class="item-title">Beso de sirena</div>
+                </div>
+                <!-- Series Recientes-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="The Madison"
+                     data-year="2026"
+                     data-duration="1 temporadas"
+                     data-rating="8.5"
+                     data-description="Tras una tragedia, una adinerada familia neoyorquina se traslada al idílico estado de Montana rural, explorando la conexión humana en medio de un profundo dolor."
+                     data-genres='["Drama", "Misterio"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 6, "driveUrls": ["https://vimeos.net/embed-hr7dfjpj4b0d.html", "https://vimeos.net/embed-eug6o6evihnv.html", "https://vimeos.net/embed-vp6n129y8he0.html", "https://vimeos.net/embed-7kqm9z7q70ko.html", "https://vimeos.net/embed-yzf05t4iefyu.html", "https://vimeos.net/embed-tb500anmtljo.html"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w1280/nZVRyqVbDqfLSOrLcsGGTUHccZ8.jpg" alt="" ><div class="item-type"></div></div>
+                    <div class="item-title">The Madison</div>
+                </div>
+                <!-- Series Recientes-->
+                <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Novio a la carta"
+                     data-year="2026"
+                     data-duration="1 temporadas"
+                     data-rating="8.5"
+                     data-description="Seo Mi-rae está agotada por el trabajo. ¿El amor? Ni le interesa. Pero un servicio de citas virtuales despierta sentimientos y, quizás, hasta un verdadero romance."
+                     data-genres='["Drama", "Comedia", "Fantasia"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 10, "driveUrls": ["https://vimeos.net/embed-5qn7xvwj3pn8.html", "https://vimeos.net/embed-xrcesaa48voa.html", "https://vimeos.net/embed-berfpf38emta.html", "https://vimeos.net/embed-c1rbgzzjipq7.html", "https://vimeos.net/embed-3ivchhobxyvj.html", "https://vimeos.net/embed-dg5a3f53zlo9.html", "https://vimeos.net/embed-ghr8r5hcwfee.html", "https://vimeos.net/embed-xtn1d4xpvxq0.html", "https://vimeos.net/embed-8uhliqrc0cvh.html", "https://vimeos.net/embed-ikce6kivf78l.html"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w1280/8vBWQjdCnK7xSGuNbK1gBK1iIQL.jpg" alt="" ><div class="item-type"></div></div>
+                    <div class="item-title">Novio a la carta</div>
+                </div>
+             <!-- Series Recientes-->
+            <div class="item" onclick="showSeriesDetails(this)" 
+                     data-title="Emergencia radiactiva"
+                     data-year="2026"
+                     data-duration="1 temporadas"
+                     data-rating="7.2"
+                     data-description="Esta serie inspirada en hechos reales sigue la desesperada lucha de médicos y físicos por contener un desastre radiológico y salvar miles de vidas."
+                     data-genres='["Drama", "Misterio", "Accion", "Ficcion"]'
+                     data-driveurl=""
+                     data-has-seasons="true"
+                     data-seasons='[{"id": 1, "name": "Temporada 1", "episodes": 5, "driveUrls": ["https://vimeos.net/embed-agplhbb2r9a0.html", "https://vimeos.net/embed-clgcwkl4v0mr.html", "https://vimeos.net/embed-k2f137s6br3j.html", "https://vimeos.net/embed-bav8va7hp6z8.html", "https://vimeos.net/embed-68e9kq0w1rwk.html"]}]'>
+                    <div class="item-image-container"><img src="https://www.themoviedb.org/t/p/w600_and_h900_face/n37h13DmkdYSkX2nP4YPvNZbmUz.jpg" alt="" ><div class="item-type"></div></div>
+                    <div class="item-title">Emergencia radiactiva</div>
+                </div>
+               </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal" id="details-modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">×</span>
+            <div class="modal-flex">
+                <div class="modal-video-container" id="modal-video-container">
+                    <iframe class="modal-iframe" id="modal-iframe" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="modal-info">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="modal-title"></h2>
+                        <button class="favorite-btn" id="modal-favorite-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="modal-meta" id="modal-meta">
+                        <span><i class="fas fa-calendar"></i> <span id="modal-year"></span></span>
+                        <span><i class="fas fa-clock"></i> <span id="modal-duration"></span></span>
+                        <span><i class="fas fa-star"></i> <span id="modal-rating"></span></span>
+                    </div>
+                    <div class="genre-tags" id="modal-genres"></div>
+                    
+                    <div class="seasons-section" id="seasons-section" style="display: none;">
+                        <div class="seasons-header">
+                            <div class="season-selector">
+                                <button class="season-btn" id="season-btn">
+                                    Temporada 1 <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <div class="season-dropdown" id="season-dropdown"></div>
+                            </div>
+                            <div class="episodes-count">
+                                Episodios: <span id="episodes-count">0</span>
+                            </div>
+                        </div>
+                        <div id="episodes-buttons-container" class="episodes-scroll-container"></div>
+                    </div>
+                    
+                    <div id="modal-description-container"></div>
+                    
+                    <div class="recommendation-section" id="rec-section">
+                        <div class="recommendation-title">
+                            <i class="fas fa-thumbs-up"></i> Quizás te interese
+                        </div>
+                        <div class="recommendation-scroll" id="recommendation-scroll"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    <script>
+        // ===========================================
+        // SISTEMA DE HISTORIAL Y FAVORITOS
+        // ===========================================
+        
+        let watchHistory = JSON.parse(localStorage.getItem('cinetux_watch_history') || '[]');
+        
+        function saveWatchHistory() {
+            localStorage.setItem('cinetux_watch_history', JSON.stringify(watchHistory));
+        }
+        
+        function addToWatchHistoryOnPlay(item) {
+            if (!item || !item.title) return;
+            const existingIndex = watchHistory.findIndex(h => h.title === item.title);
+            if (existingIndex !== -1) watchHistory.splice(existingIndex, 1);
+            
+            const posterUrl = item.poster || 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(item.title);
+            
+            const historyItem = {
+                title: item.title, 
+                year: item.year, 
+                duration: item.duration, 
+                rating: item.rating,
+                description: item.description, 
+                genres: item.genres, 
+                driveurl: item.driveurl,
+                poster: posterUrl, 
+                type: item.type || (item.hasSeasons ? 'serie' : 'película'),
+                hasSeasons: item.hasSeasons || false, 
+                seasons: item.seasons || [], 
+                timestamp: new Date().toISOString()
+            };
+            watchHistory.unshift(historyItem);
+            if (watchHistory.length > 50) watchHistory = watchHistory.slice(0, 50);
+            saveWatchHistory();
+        }
+        
+        let favorites = JSON.parse(localStorage.getItem('cinetux_favorites') || '[]');
+        function saveFavorites() { localStorage.setItem('cinetux_favorites', JSON.stringify(favorites)); }
+        function isFavorite(title) { return favorites.some(fav => fav.title === title); }
+        function addFavorite(item) { 
+            if (!isFavorite(item.title)) { 
+                favorites.push(item); 
+                saveFavorites(); 
+                updateFavoriteButtonUI(true); 
+                showNotification(`✓ "${item.title}" añadido a favoritos`); 
+            } 
+        }
+        function removeFavorite(title) { 
+            favorites = favorites.filter(fav => fav.title !== title); 
+            saveFavorites(); 
+            updateFavoriteButtonUI(false); 
+            showNotification(`✗ Eliminado de favoritos`); 
+        }
+        function toggleFavorite(item) { 
+            if (isFavorite(item.title)) removeFavorite(item.title); 
+            else addFavorite(item); 
+        }
+        function updateFavoriteButtonUI(isFav) { 
+            const btn = document.getElementById('modal-favorite-btn');
+            if (btn) btn.innerHTML = isFav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>'; 
+        }
+        
+        // ===========================================
+        // FUNCIONES DE VIDEO Y MODAL
+        // ===========================================
+        let currentSeasons = [];
+        let currentSeasonIndex = 0;
+        let currentEpisodeIndex = 0;
+        let currentSeriesId = '';
+        let seriesProgress = {};
+        let isDescriptionExpanded = false;
+        let currentWatchHistoryItem = null;
+        let currentFavoriteItem = null;
+        
+        function loadSeriesProgress() { const saved = localStorage.getItem('seriesProgress'); if (saved) seriesProgress = JSON.parse(saved); }
+        function saveSeriesProgress() { localStorage.setItem('seriesProgress', JSON.stringify(seriesProgress)); }
+        function saveCurrentSeriesProgress() { if (currentSeriesId && currentSeasons.length) { seriesProgress[currentSeriesId] = { seasonIndex: currentSeasonIndex, episodeIndex: currentEpisodeIndex, lastWatched: new Date().toISOString() }; saveSeriesProgress(); } }
+        function loadSavedProgressForSeries(seriesId) { return seriesProgress[seriesId] || null; }
+        
+        function convertGoogleDriveUrl(url) {
+            if (!url || url.trim() === '') return '';
+            if (url.includes('/preview')) return url;
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) return `https://drive.google.com/file/d/${match[1]}/preview`;
+            if (url.includes('vimeo') || url.includes('youtube') || url.includes('vimeos.net') || url.includes('embed')) return url;
+            return '';
+        }
+        
+        function loadEmbedVideo(driveUrl) {
+            const container = document.getElementById('modal-video-container');
+            container.innerHTML = '<iframe class="modal-iframe" id="modal-iframe" frameborder="0" allowfullscreen></iframe>';
+            const newIframe = document.getElementById('modal-iframe');
+            if (!driveUrl || driveUrl.trim() === '') { 
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>No hay video disponible.</p></div>'; 
+                return; 
+            }
+            const embedUrl = convertGoogleDriveUrl(driveUrl);
+            if (embedUrl === '') { 
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>Enlace no válido.</p></div>'; 
+                return; 
+            }
+            newIframe.src = embedUrl;
+            newIframe.onload = function() { saveCurrentSeriesProgress(); if (currentWatchHistoryItem) addToWatchHistoryOnPlay(currentWatchHistoryItem); };
+        }
+        
+        function setupDescriptionWithReadMore(description) {
+            const container = document.getElementById('modal-description-container');
+            container.innerHTML = '';
+            const descDiv = document.createElement('div');
+            descDiv.className = 'modal-description collapsed';
+            descDiv.textContent = description || 'Sin descripción disponible.';
+            const readBtn = document.createElement('button');
+            readBtn.className = 'read-more-btn';
+            readBtn.innerHTML = 'Ver más <i class="fas fa-chevron-down"></i>';
+            const check = () => {
+                setTimeout(() => {
+                    const lineH = parseFloat(getComputedStyle(descDiv).lineHeight);
+                    const maxH = lineH * 3;
+                    if (descDiv.scrollHeight > maxH + 5) {
+                        readBtn.style.display = 'flex';
+                        descDiv.classList.add('collapsed');
+                        isDescriptionExpanded = false;
+                    } else {
+                        readBtn.style.display = 'none';
+                        descDiv.classList.remove('collapsed');
+                        isDescriptionExpanded = true;
+                    }
+                }, 50);
+            };
+            check();
+            window.addEventListener('resize', check);
+            readBtn.addEventListener('click', () => {
+                if (isDescriptionExpanded) {
+                    descDiv.classList.add('collapsed');
+                    readBtn.innerHTML = 'Ver más <i class="fas fa-chevron-down"></i>';
+                    readBtn.classList.remove('expanded');
+                    isDescriptionExpanded = false;
+                } else {
+                    descDiv.classList.remove('collapsed');
+                    readBtn.innerHTML = 'Ver menos <i class="fas fa-chevron-up"></i>';
+                    readBtn.classList.add('expanded');
+                    isDescriptionExpanded = true;
+                }
+            });
+            container.appendChild(descDiv);
+            container.appendChild(readBtn);
+        }
+        
+        function setupSeasonSelector() {
+            const dropdown = document.getElementById('season-dropdown');
+            const btn = document.getElementById('season-btn');
+            dropdown.innerHTML = '';
+            currentSeasons.forEach((season, idx) => {
+                const opt = document.createElement('div');
+                opt.className = `season-option ${idx === currentSeasonIndex ? 'active' : ''}`;
+                opt.dataset.index = idx;
+                opt.innerHTML = `<span>${season.name}</span>`;
+                opt.addEventListener('click', () => {
+                    currentSeasonIndex = parseInt(opt.dataset.index);
+                    btn.innerHTML = `${currentSeasons[currentSeasonIndex].name} <i class="fas fa-chevron-down"></i>`;
+                    document.querySelectorAll('.season-option').forEach(o => o.classList.remove('active'));
+                    opt.classList.add('active');
+                    loadSeason(currentSeasonIndex);
+                    dropdown.classList.remove('show');
+                    saveCurrentSeriesProgress();
+                });
+                dropdown.appendChild(opt);
+            });
+            btn.innerHTML = `${currentSeasons[currentSeasonIndex].name} <i class="fas fa-chevron-down"></i>`;
+            btn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('show'); });
+            document.addEventListener('click', () => dropdown.classList.remove('show'));
+        }
+        
+        function loadSeason(seasonIndex) {
+            const season = currentSeasons[seasonIndex];
+            if (!season) return;
+            document.getElementById('episodes-count').innerHTML = season.episodes;
+            const container = document.getElementById('episodes-buttons-container');
+            container.innerHTML = '';
+            const saved = seriesProgress[currentSeriesId];
+            let activeEp = (saved && saved.seasonIndex === seasonIndex) ? saved.episodeIndex : 0;
+            for (let i = 1; i <= season.episodes; i++) {
+                const epIdx = i - 1;
+                const btn = document.createElement('button');
+                btn.className = `episode-btn ${(epIdx === activeEp && seasonIndex === currentSeasonIndex) ? 'active' : ''}`;
+                btn.textContent = i;
+                btn.dataset.index = epIdx;
+                btn.dataset.seasonIndex = seasonIndex;
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.episode-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentEpisodeIndex = parseInt(btn.dataset.index);
+                    currentSeasonIndex = parseInt(btn.dataset.seasonIndex);
+                    const url = currentSeasons[currentSeasonIndex].driveUrls[currentEpisodeIndex];
+                    if (url && url.trim()) loadEmbedVideo(url);
+                    else {
+                        document.getElementById('modal-video-container').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>No hay video disponible.</p></div>';
+                    }
+                    saveCurrentSeriesProgress();
+                });
+                container.appendChild(btn);
+            }
+            setTimeout(() => {
+                const act = container.querySelector('.episode-btn.active');
+                if (act) act.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }, 100);
+        }
+        
+        // ===========================================
+        // OBTENER TODO EL CONTENIDO PARA RECOMENDACIONES
+        // ===========================================
+        function obtenerPosterDelElemento(el) {
+            let poster = el.getAttribute('data-poster');
+            if (poster) return poster;
+            
+            const img = el.querySelector('.item-image-container img');
+            if (img && img.src) return img.src;
+            
+            const anyImg = el.querySelector('img');
+            if (anyImg && anyImg.src) return anyImg.src;
+            
+            return null;
+        }
+        
+        function obtenerTodoElContenidoDesdeDOM() {
+            const items = [];
+            document.querySelectorAll('.item').forEach(el => {
+                const title = el.getAttribute('data-title');
+                if (!title) return;
+                
+                const poster = obtenerPosterDelElemento(el) || 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(title);
+                
+                items.push({
+                    title: title.trim(),
+                    year: el.getAttribute('data-year') || '',
+                    rating: el.getAttribute('data-rating') || '',
+                    duration: el.getAttribute('data-duration') || '',
+                    description: el.getAttribute('data-description') || '',
+                    genres: JSON.parse(el.getAttribute('data-genres') || '[]'),
+                    driveurl: el.getAttribute('data-driveurl') || '',
+                    poster: poster,
+                    type: el.getAttribute('data-type') || 'película',
+                    hasSeasons: el.getAttribute('data-has-seasons') === 'true',
+                    seasons: el.getAttribute('data-has-seasons') === 'true' ? JSON.parse(el.getAttribute('data-seasons') || '[]') : []
+                });
+            });
+            return items;
+        }
+        
+        function getRandomRecommendationsFromDOM(excludeTitle = null) {
+            let all = obtenerTodoElContenidoDesdeDOM();
+            if (excludeTitle) all = all.filter(c => c.title !== excludeTitle);
+            if (all.length === 0) return [];
+            for (let i = all.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [all[i], all[j]] = [all[j], all[i]];
+            }
+            return all.slice(0, 8);
+        }
+        
+        function renderRecommendationsInModal(currentTitle) {
+            const container = document.getElementById('recommendation-scroll');
+            if (!container) return;
+            const recs = getRandomRecommendationsFromDOM(currentTitle);
+            container.innerHTML = '';
+            if (recs.length === 0) {
+                container.innerHTML = `<div style="padding:20px;text-align:center;color:#888;">No hay más contenido disponible</div>`;
+                return;
+            }
+            recs.forEach(rec => {
+                const card = document.createElement('div');
+                card.className = 'rec-card';
+                const posterUrl = rec.poster || 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(rec.title);
+                card.innerHTML = `<img src="${posterUrl}" class="rec-poster" alt="${rec.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/100x150?text=${encodeURIComponent(rec.title)}'"><div class="rec-info"><div class="rec-title">${rec.title}</div></div>`;
+                
+                const original = Array.from(document.querySelectorAll('.item')).find(el => {
+                    const t = el.getAttribute('data-title');
+                    return t && t.trim() === rec.title;
+                });
+                
+                if (original) {
+                    const isSeries = original.getAttribute('data-has-seasons') === 'true';
+                    if (isSeries) {
+                        card.addEventListener('click', () => showSeriesDetails(original));
+                    } else {
+                        card.addEventListener('click', () => showMovieDetails(original));
+                    }
+                } else {
+                    const tmp = document.createElement('div');
+                    tmp.setAttribute('data-title', rec.title);
+                    tmp.setAttribute('data-year', rec.year || '');
+                    tmp.setAttribute('data-duration', rec.duration || '');
+                    tmp.setAttribute('data-rating', rec.rating || '');
+                    tmp.setAttribute('data-description', rec.description || '');
+                    tmp.setAttribute('data-genres', JSON.stringify(rec.genres || []));
+                    tmp.setAttribute('data-driveurl', rec.driveurl || '');
+                    tmp.setAttribute('data-type', rec.type || 'película');
+                    tmp.setAttribute('data-poster', posterUrl);
+                    if (rec.hasSeasons) {
+                        tmp.setAttribute('data-has-seasons', 'true');
+                        tmp.setAttribute('data-seasons', JSON.stringify(rec.seasons || []));
+                        card.addEventListener('click', () => showSeriesDetails(tmp));
+                    } else {
+                        card.addEventListener('click', () => showMovieDetails(tmp));
+                    }
+                }
+                container.appendChild(card);
+            });
+        }
+        
+        // ===========================================
+        // MOSTRAR DETALLES
+        // ===========================================
+        function showMovieDetails(element) {
+            document.getElementById('seasons-section').style.display = 'none';
+            const title = element.getAttribute('data-title');
+            const year = element.getAttribute('data-year');
+            const duration = element.getAttribute('data-duration');
+            const rating = element.getAttribute('data-rating');
+            const description = element.getAttribute('data-description');
+            const genres = JSON.parse(element.getAttribute('data-genres') || '[]');
+            const driveUrl = element.getAttribute('data-driveurl');
+            const type = element.getAttribute('data-type') || 'película';
+            let poster = element.getAttribute('data-poster');
+            if (!poster) {
+                const img = element.querySelector('.item-image-container img');
+                if (img && img.src) poster = img.src;
+            }
+            if (!poster) poster = 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(title);
+            
+            currentFavoriteItem = {
+                title, year, duration, rating, description, genres,
+                driveurl: driveUrl, poster, type, hasSeasons: false
+            };
+            currentWatchHistoryItem = currentFavoriteItem;
+            loadEmbedVideo(driveUrl);
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-year').textContent = year;
+            document.getElementById('modal-duration').textContent = duration;
+            document.getElementById('modal-rating').textContent = rating;
+            const mg = document.getElementById('modal-genres');
+            mg.innerHTML = '';
+            if (genres && Array.isArray(genres)) {
+                genres.forEach(g => { const tag = document.createElement('div'); tag.className = 'genre-tag'; tag.textContent = g; mg.appendChild(tag); });
+            }
+            setupDescriptionWithReadMore(description || 'Sin descripción disponible.');
+            renderRecommendationsInModal(title);
+            updateFavoriteButtonUI(isFavorite(title));
+            document.getElementById('details-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function showSeriesDetails(element) {
+            const title = element.getAttribute('data-title');
+            const year = element.getAttribute('data-year');
+            const duration = element.getAttribute('data-duration');
+            const rating = element.getAttribute('data-rating');
+            const description = element.getAttribute('data-description');
+            const genres = JSON.parse(element.getAttribute('data-genres') || '[]');
+            const driveUrl = element.getAttribute('data-driveurl');
+            const type = element.getAttribute('data-type') || 'serie';
+            const hasSeasons = element.getAttribute('data-has-seasons') === 'true';
+            let poster = element.getAttribute('data-poster');
+            if (!poster) {
+                const img = element.querySelector('.item-image-container img');
+                if (img && img.src) poster = img.src;
+            }
+            if (!poster) poster = 'https://via.placeholder.com/100x150?text=' + encodeURIComponent(title);
+            const seasonsData = hasSeasons ? JSON.parse(element.getAttribute('data-seasons') || '[]') : [];
+            
+            currentFavoriteItem = {
+                title, year, duration, rating, description, genres,
+                driveurl: driveUrl, poster, type, hasSeasons, seasons: seasonsData
+            };
+            currentWatchHistoryItem = currentFavoriteItem;
+            currentSeriesId = title.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-year').textContent = year;
+            document.getElementById('modal-duration').textContent = duration;
+            document.getElementById('modal-rating').textContent = rating;
+            const mg = document.getElementById('modal-genres');
+            mg.innerHTML = '';
+            if (genres && Array.isArray(genres)) {
+                genres.forEach(g => { const tag = document.createElement('div'); tag.className = 'genre-tag'; tag.textContent = g; mg.appendChild(tag); });
+            }
+            setupDescriptionWithReadMore(description || 'Sin descripción disponible.');
+            if (hasSeasons && seasonsData.length > 0) {
+                document.getElementById('seasons-section').style.display = 'block';
+                currentSeasons = seasonsData;
+                const saved = loadSavedProgressForSeries(currentSeriesId);
+                if (saved) { currentSeasonIndex = saved.seasonIndex; currentEpisodeIndex = saved.episodeIndex; }
+                else { currentSeasonIndex = 0; currentEpisodeIndex = 0; }
+                setupSeasonSelector();
+                loadSeason(currentSeasonIndex);
+                if (currentSeasons.length > currentSeasonIndex && 
+                    currentSeasons[currentSeasonIndex].driveUrls && 
+                    currentSeasons[currentSeasonIndex].driveUrls.length > currentEpisodeIndex && 
+                    currentSeasons[currentSeasonIndex].driveUrls[currentEpisodeIndex]) {
+                    loadEmbedVideo(currentSeasons[currentSeasonIndex].driveUrls[currentEpisodeIndex]);
+                } else if (driveUrl) {
+                    loadEmbedVideo(driveUrl);
+                } else {
+                    document.getElementById('modal-video-container').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;"><p>No hay video disponible.</p></div>';
+                }
+            } else {
+                document.getElementById('seasons-section').style.display = 'none';
+                loadEmbedVideo(driveUrl);
+            }
+            renderRecommendationsInModal(title);
+            updateFavoriteButtonUI(isFavorite(title));
+            document.getElementById('details-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModalAndSave() {
+            saveCurrentSeriesProgress();
+            document.getElementById('details-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('modal-video-container').innerHTML = '<iframe class="modal-iframe" id="modal-iframe" frameborder="0" allowfullscreen></iframe>';
+            currentSeasons = [];
+            currentSeasonIndex = 0;
+            currentEpisodeIndex = 0;
+            currentSeriesId = '';
+            isDescriptionExpanded = false;
+            currentWatchHistoryItem = null;
+        }
+        
+        // ===========================================
+        // NOTIFICACIONES Y BÚSQUEDA
+        // ===========================================
+        function showNotification(msg) {
+            const n = document.getElementById('notification');
+            n.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`;
+            n.style.display = 'block';
+            setTimeout(() => n.style.display = 'none', 2000);
+        }
+        
+        function searchMovies() {
+            const term = document.getElementById('search-input').value.toLowerCase().trim();
+            const resultsContainer = document.getElementById('search-results-container');
+            const resultsGrid = document.getElementById('search-results-grid');
+            if (term === '') {
+                resultsContainer.style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                return;
+            }
+            document.getElementById('main-content').style.display = 'none';
+            resultsContainer.style.display = 'block';
+            resultsGrid.innerHTML = '';
+            let has = false;
+            document.querySelectorAll('.item').forEach(item => {
+                const title = item.getAttribute('data-title');
+                if (title && title.toLowerCase().includes(term)) {
+                    has = true;
+                    const clone = item.cloneNode(true);
+                    clone.onclick = function(e) {
+                        const original = item;
+                        if (original.getAttribute('data-has-seasons') === 'true') {
+                            showSeriesDetails(original);
+                        } else {
+                            showMovieDetails(original);
+                        }
+                    };
+                    resultsGrid.appendChild(clone);
+                }
+            });
+            if (!has) {
+                resultsGrid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;"><i class="fas fa-search" style="font-size:3rem;"></i><h3>No se encontraron resultados</h3></div>`;
+            }
+        }
+        
+        // ===========================================
+        // INICIALIZACIÓN
+        // ===========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSeriesProgress();
+            
+            // Tema
+            document.getElementById('theme-toggle').addEventListener('click', () => {
+                document.body.classList.toggle('light-theme');
+                const icon = document.getElementById('theme-toggle').querySelector('i');
+                if (document.body.classList.contains('light-theme')) {
+                    icon.className = 'fas fa-sun';
+                } else {
+                    icon.className = 'fas fa-moon';
+                }
+                localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+            });
+            if (localStorage.getItem('theme') === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('theme-toggle').querySelector('i').className = 'fas fa-sun';
+            }
+            
+            // Modal close
+            document.getElementById('close-modal').addEventListener('click', closeModalAndSave);
+            window.addEventListener('click', (e) => {
+                if (e.target === document.getElementById('details-modal')) closeModalAndSave();
+            });
+            
+            // Fav button
+            document.getElementById('modal-favorite-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (currentFavoriteItem) toggleFavorite(currentFavoriteItem);
+            });
+            
+            // Search
+            let searchTimeout;
+            document.getElementById('search-input').addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(searchMovies, 300);
+            });
+        });
+    </script>
+</body>
+</html>
