@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Recientes Online</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #141414;
+            --text-color: #ffffff;
+            --primary-color: #e50914;
+            --secondary-color: #303030;
+            --hover-color: #b20710;
+            --card-width: 110px;
+            --card-height: 150px;
+            --transition: all 0.3s ease;
+        }
+
+        .light-theme {
+            --bg-color: #f4f4f4;
+            --text-color: #333333;
+            --primary-color: #e50914;
+            --secondary-color: #dddddd;
+            --hover-color: #b20710;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: var(--transition);
+            padding-bottom: 5px;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            background-color: var(--bg-color);
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+            height: 45px;
+            transition: var(--transition);
+        }
+
+        .header-left {
+            flex: 1;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .header-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .header-right {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+        }
+
+        .search-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.3rem;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .search-toggle-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            width: 40px;
+            height: 40px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .search-dropdown {
+            width: 100%;
+            background-color: var(--bg-color);
+            padding: 15px 20px;
+            box-shadow: 0 6px 8px rgba(0,0,0,0.3);
+            display: none;
+            position: sticky;
+            top: 45px;
+            z-index: 99;
+            transition: var(--transition);
+            border-top: 1px solid var(--secondary-color);
+            border-bottom: 1px solid var(--secondary-color);
+        }
+
+        .search-dropdown.active {
+            display: block;
+        }
+
+        .search-dropdown-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-dropdown-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 1rem;
+        }
+
+        #search-input-desktop {
+            width: 100%;
+            padding: 12px 20px 12px 50px;
+            border: none;
+            border-radius: 30px;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        #search-input-desktop::placeholder {
+            color: #aaa;
+        }
+
+        .content-container {
+            padding: 25px 15px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            width: 100%;
+        }
+
+        .movie-item {
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--secondary-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            position: relative;
+            aspect-ratio: 2/3;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .movie-item:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .movie-poster-container {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .movie-item:hover .movie-poster {
+            transform: scale(1.05);
+        }
+
+        .movie-info {
+            padding: 10px 8px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            height: 15%;
+            background-color: var(--secondary-color);
+            text-align: center;
+        }
+
+        .movie-title {
+            font-size: 0.5rem;
+            font-weight: 600;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.1;
+        }
+
+        .movie-rating {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffd700;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .movie-year {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.5rem;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 200;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 17px;
+            right: 17px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--primary-color);
+            background: rgba(0,0,0,0.5);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: var(--transition);
+        }
+
+        .close-btn:hover {
+            transform: rotate(90deg);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .modal-flex {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-container {
+            width: 100%;
+            background-color: #000;
+            position: relative;
+            min-height: 300px;
+        }
+
+        .video-container iframe {
+            width: 100%;
+            height: 300px;
+            border: none;
+            display: block;
+        }
+
+        .modal-info {
+            padding: 20px 15px;
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        .modal-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .modal-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .modal-meta i {
+            color: var(--primary-color);
+        }
+
+        .modal-description {
+            margin-bottom: 10px;
+            line-height: 1.3;
+            font-size: 0.95rem;
+        }
+
+        .description-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .description-text.expanded {
+            -webkit-line-clamp: unset;
+            display: block;
+        }
+
+        .show-more-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 5px 0;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: var(--transition);
+        }
+
+        .show-more-btn:hover {
+            color: var(--hover-color);
+        }
+
+        .genre-tags {
+            display: flex;
+            gap: 8px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .genre-tag {
+            background-color: var(--secondary-color);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .recommendation-section {
+            margin-top: 28px;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.2px;
+            color: var(--text-color);
+        }
+
+        .recommendation-title i {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .horizontal-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            scroll-behavior: smooth;
+            padding-bottom: 12px;
+            padding-right: 5px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar {
+            height: 0px;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+            border-radius: 10px;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+
+        .rec-movie-card {
+            flex: 0 0 auto;
+            width: 100px;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--secondary-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            position: relative;
+            aspect-ratio: 2/3;
+	    gap: 3px;
+        }
+
+        .rec-movie-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+        }
+
+        .rec-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .rec-year {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            background: rgba(0,0,0,0.7);
+            font-size: 0.5rem;
+            padding: 2px 5px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .rec-rating {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(0,0,0,0.7);
+            font-size: 0.5rem;
+            padding: 2px 5px;
+            border-radius: 4px;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        @media (max-width: 1500px) {
+            .movies-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+            .content-container {
+                padding: 10px 5px;
+            }
+            .logo {
+                font-size: 1.2rem;
+            }
+            .search-dropdown {
+                top: 45px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .movies-grid {
+                grid-template-columns: repeat(3, 1fr);
+		
+            }
+            .rec-movie-card {
+                width: 105px;
+		
+            }
+            .recommendation-title {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left"></div>
+        <div class="header-center">
+            <div class="logo">
+                <i class=""></i>
+                <span>Recientes</span> <span>2026</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="search-toggle-btn" id="search-toggle-btn">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="theme-toggle" id="theme-toggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="search-dropdown" id="search-dropdown">
+        <div class="search-dropdown-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-input-desktop" placeholder="Buscar películas...">
+        </div>
+    </div>
+
+    <div class="content-container">
+        <div class="movies-grid" id="movies-grid">
+           <!-- Película  -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Sesión fatal"
+                         data-year="2026"
+                         data-duration="1:49 min"
+                         data-rating="7.4"
+                         data-description="Dos parejas llegan a una mansión rural que reservaron juntas sin saberlo, y descubren extraños sucesos durante su estancia."
+                         data-genres='["Terror", "Misterio", "Crimen"]'
+                         data-driveurl="https://vimeos.net/embed-o9tl6z69asjn.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/tISaeNWkqPYqSdANTTteewEMS5H.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i>7.4</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Sesión fatal</div>
+                </div>
+            </div>	 	   
+	    <!-- Película  -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Scream 7"
+                         data-year="2026"
+                         data-duration="1:49 min"
+                         data-rating="5.8"
+                         data-description="Cuando un nuevo asesino Ghostface aparece en el tranquilo pueblo donde Sidney Prescott ha construido una nueva vida, sus peores miedos se hacen realidad cuando su hija se convierte en el siguiente objetivo. Decidida a proteger a su familia, Sidney debe enfrentarse a los horrores de su pasado para poner fin a la masacre de una vez por todas."
+                         data-genres='["Terror", "Misterio", "Crimen"]'
+                         data-driveurl="https://vimeos.net/embed-zhjbp2ckgzms.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/2pULHV2e3W7KNTyyfZl6dX071Np.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i>5.8</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Scream 7</div>
+                </div>
+            </div>	    
+
+	    <!-- Película  -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="La meta es el amor"
+                 data-year="2026"
+                 data-duration="1:33 min"
+                 data-rating="4.1"
+                 data-description="Cuando la productora de TV Leah Caldwell pretende ser la primera mujer a cargo del mejor programa matutino local, su es, Jarrett Roy llega a competir por el mismo rol. Él asegura haber cambiado gracias al libro "La meta es el amor", que se vuelve un tema central cuando las amigas de Leah exploran el libro. Leah se enfoca en su carrera hasta que la química con su ex desafía sus prioridades."
+                 data-genres='["Comedia", "Romance"]'
+                 data-driveurl="https://vimeos.net/embed-72obi00zb5dg.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/eZRbRa0q9rKkPe0gfJ2a0NhygBX.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 4.1</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">La meta es el amor</div>
+                </div>
+            </div>
+
+	    <!-- Película  -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="¡Uf! ¿Solo amigos?"
+                 data-year="2026"
+                 data-duration="1:35 min"
+                 data-rating="3.3"
+                 data-description="Thando nunca ha tenido suerte en el amor... Y ahora, su mejor amigo vuelve a casa con una prometida del brazo y se ve obligada a afrontar una nueva emoción: los celos."
+                 data-genres='["Comedia", "Romance"]'
+                 data-driveurl="https://vimeos.net/embed-ist3euogtfle.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/9bxYsc9GegAcqt0egBdXaS1mMmw.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 3.3</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">¡Uf! ¿Solo amigos?</div>
+                </div>
+            </div>
+	   <!-- Película  -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Ahí estoy yo"
+                 data-year="2026"
+                 data-duration="2:10 min"
+                 data-rating="6.5"
+                 data-description="Ai Haruna triunfó en Japón en 2008 imitando a Aya Matsuura, tras un largo camino personal. Nacida como Kenji, luchó con su identidad y el juicio social sin renunciar a su sueño de ser ídolo como Seiko Matsuda. Su destino cambió al conocer al Dr. Koji Wada, con quien se convirtió en la primera persona en someterse a una operación de reafirmación de género, forjando ambos un vínculo marcado por la soledad y la crítica social."
+                 data-genres='["Drama", "Romance"]'
+                 data-driveurl="https://vimeos.net/embed-duqdcx9fndgi.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/pW68uIgEJsjFtLUWIRpxcOuwivY.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 6.5</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Ahí estoy yo</div>
+                </div>
+            </div>
+	    <!-- Película  -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Un hombre por semana"
+                 data-year="2026"
+                 data-duration="1:26 min"
+                 data-rating="6.5"
+                 data-description="Ha pasado un año desde que Mónica se divorció. Sus mejores amigas, Martha y Paula, deciden hacerle una intervención para que salga con un hombre por semana, se divierta y, tal vez, encuentre un nuevo amor."
+                 data-genres='["Drama", "Comedia", "Romance"]'
+                 data-driveurl="https://vimeos.net/embed-fd369lvyf040.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/rHwOvosfDFRsjBihdh9dIHnMgbO.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 6.5</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Un hombre por semana</div>
+                </div>
+            </div>
+	    <!-- Película  -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Peaky Blinders: El hombre inmortal"
+                 data-year="2026"
+                 data-duration="1:55 min"
+                 data-rating="7.5"
+                 data-description="Cuando su hijo se ve envuelto en una conspiración nazi, Tommy Shelby debe salir de su autoexilio y regresar a Birmingham para salvar a su familia y su país."
+                 data-genres='["Drama", "Accion", "Crimen"]'
+                 data-driveurl="https://vimeos.net/embed-8epeo5kvvb7e.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/l9S8MLUyi2diTc2Gf3KDAOQTuVx.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 7.5</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Peaky Blinders: El hombre inmortal</div>
+                </div>
+            </div>
+	    <!-- Película  -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="The red line"
+                 data-year="2026"
+                 data-duration="2:16 min"
+                 data-rating="5.0"
+                 data-description="Tres mujeres caen víctimas de una descomunal estafa telefónica. Para vengarse, se enfrentarán a los criminales que les robaron el dinero… y la dignidad."
+                 data-genres='["Drama", "Suspenso", "Crimen"]'
+                 data-driveurl="https://vimeos.net/embed-5f78n6xgurjz.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/2jZkzmwSLaWO7GTWVjUsmv2SR9F.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 5.0</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">The red line</div>
+                </div>
+            </div>
+	    <!-- Película  -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="El guardian"
+                 data-year="2026"
+                 data-duration="1:48 min"
+                 data-rating="6.6"
+                 data-description="Un recluso en una remota isla escocesa rescata a una niña del mar, desencadenando una peligrosa secuencia de acontecimientos."
+                 data-genres='["Acciona", "Suspenso", "Crimen"]'
+                 data-driveurl="https://vimeos.net/embed-wzzqe2tyb7t3.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/kOsqd5jFZ0p3O8Z0k0VQvBW2neW.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 6.6</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">El guardian</div>
+                </div>
+            </div>
+            <!-- Película  -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Marty Supreme"
+                 data-year="2025"
+                 data-duration="2:30 min"
+                 data-rating="7.6"
+                 data-description="Biopic de Marty Reisman, un buscavidas convertido en campeón de ping pong, desde que empezó a jugar por apuestas en Manhattan hasta ganar 22 títulos importantes y convertirse en el más veterano en ganar una competición nacional de deportes de raqueta, con 67 años."
+                 data-genres='["Drama"]'
+                 data-driveurl="https://vimeos.net/embed-wrhz3bl4po3r.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/mijSU0Rws3tBBbhdE5udxPSaZvF.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2025</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 7.6</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Marty Supreme</div>
+                </div>
+            </div>
+            <!-- Película -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Love Me Love Me"
+                 data-year="2026"
+                 data-duration="1:39 min"
+                 data-rating="6.2"
+                 data-description="Tras la muerte de su hermano, June se muda a Milán para empezar de nuevo. Allí encuentra refugio en Will, el alumno perfecto de su instituto internacional. Pero James, el problemático mejor amigo de Will, que oculta una peligrosa vida en peleas clandestinas de MMA, convierte la rivalidad en una atracción irresistible que obliga a June a elegir entre una vida segura y un amor que lo cambia todo."
+                 data-genres='["Romance", "Drama"]'
+                 data-driveurl="https://vimeos.net/embed-ex4me0mx45kn.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/4QWAPETLYZosiwXQCTMu1KerXxI.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 6.2</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Love Me Love Me</div>
+                </div>
+            </div>
+            <!-- Película 1 -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Hermandad: Estado de terror"
+                 data-year="2026"
+                 data-duration="1:43 min"
+                 data-rating="4.3"
+                 data-description="En medio de una ola de violencia inédita que sacude São Paulo, una abogada ligada al mundo criminal debe pactar con la policía para salvar a su sobrina secuestrada."
+                 data-genres='["Accion", "Suspenso", "Crimen", "Drama"]'
+                 data-driveurl="https://vimeos.net/embed-vg17s66fn1t2.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/xdyCFS4jUzp7kghoptaiYqir48X.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 4.3</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Hermandad: Estado de terror</div>
+                </div>
+            </div>
+            <!-- Película 1 -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Greenland 2"
+                 data-year="2026"
+                 data-duration="1:38 min"
+                 data-rating="6.5"
+                 data-description="La familia Garrity superviviente debe abandonar la seguridad del búnker de Groenlandia y embarcarse en un peligroso viaje a través del diezmado páramo helado de Europa para encontrar un nuevo hogar."
+                 data-genres='["Aventura", "Suspenso", "Ficcion"]'
+                 data-driveurl="https://vimeos.net/embed-7ntqznsbfu2j.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/uoFJ6nGGvf8moZGpharm8Qyrpzm.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 6.5</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Greenland 2</div>
+                </div>
+            </div>
+            <!-- Película 1 -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Primate"
+                 data-year="2026"
+                 data-duration="1:29 min"
+                 data-rating="6.7"
+                 data-description="Lucy, una estudiante universitaria, pasa las vacaciones con sus amigos en la casa de su familia en Hawái, donde vive con su mascota, un chimpancé llamado Ben. Sin embargo, cuando Ben contrae rabia tras ser mordido por un animal rabioso, el grupo debe luchar por su vida para evitar al ahora violento chimpancé."
+                 data-genres='["Terror", "Suspenso", "Simio"]'
+                 data-driveurl="https://vimeos.net/embed-aqkesuaqlkom.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/cyqEghDphEUunLfongtpmROjpID.jpg" alt="" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 6.7</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Primate</div>
+                </div>
+            </div>
+            <!-- Película 1 -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Equipo Demolicion"
+                 data-year="2026"
+                 data-duration="2:04 min"
+                 data-rating="6.9"
+                 data-description="Un improbable dúo de hermanastros, uno un impulsivo detective y el otro un disciplinado, se ven atraídos por el asesinato de su padre en Hawai, lo que les lleva a un peligroso viaje para desenmascarar una conspiración de largo alcance."
+                 data-genres='["Acción", "Comedia", "Misterio","Crimen"]'
+                 data-driveurl="https://vimeos.net/embed-slm63blvjl6e.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/3kDdt8usbGGdgEGO4jzd8JnSW5P.jpg" alt="Equipo Demolicion" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 6.9</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Equipo Demolición</div>
+                </div>
+            </div>
+            <!-- Película 2 -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="De las cenizas: Bajo tierra"
+                 data-year="2026"
+                 data-duration="1:28 min"
+                 data-rating="3.8"
+                 data-description="Tras quedar atrapadas en un foso durante una tormenta, tres estudiantes de una escuela para chicas deben enfrentar sus conflictos personales mientras luchan por sobrevivir."
+                 data-genres='["Drama", "Suspenso"]'
+                 data-driveurl="https://vimeos.net/embed-uqru7gfswitn.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/jl3reSLwDzDKAdSkMXoUAcwqeMg.jpg" alt="De las cenizas: Bajo tierran" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 3.8</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">De las cenizas: Bajo tierra</div>
+                </div>
+            </div>
+            <!-- Película 3 -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="El falsario"
+                 data-year="2026"
+                 data-duration="1:50 min"
+                 data-rating="6.4"
+                 data-description="Un artista en ciernes se convierte en un experto falsario para bandas criminales en la Roma de los años setenta. Drama inspirado en hechos reales."
+                 data-genres='["Suspenso", "Crimen", "Drama"]'
+                 data-driveurl="https://vimeos.net/embed-uqiww4tlogov.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/bJFvxY8S3kM7h2ScWhfVozROstF.jpg" alt="El falsario" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 9.0</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">El falsario</div>
+                </div>
+            </div>
+            <!-- Película 4 -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Una carta a mi juventud "
+                 data-year="2026"
+                 data-duration="2:15 min"
+                 data-rating="7.0"
+                 data-description="Un adolescente rebelde y un reservado educador forjan un vínculo inesperado en un orfanato, mientras intentan pasar página y lidiar con su doloroso pasado."
+                 data-genres='["Drama", "Nostalgia"]'
+                 data-driveurl="https://vimeos.net/embed-pn1u1x5yvhfu.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/xzP2m0PqEsmBiNbRC6qW5zkrnRo.jpg" alt="Una carta a mi juventud " class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 7.0</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Una carta a mi juventud </div>
+                </div>
+            </div>
+            <!-- Película 5 -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="El botín "
+                 data-year="2026"
+                 data-duration="2:13 min"
+                 data-rating="7.0"
+                 data-description="La confianza de un grupo de policías de Miami comienza a resquebrajarse después de descubrir millones de dólares en efectivo en un escondite abandonado. A medida que fuerzas externas se enteran del tamaño de la incautación, todo se pone en duda, incluso en quién pueden confiar."
+                 data-genres='["Accion", "Suspenso", "Crimen"]'
+                data-driveurl="https://vimeos.net/embed-9b7uadbng1z9.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/55C5loKFkw7Cj0nMLWux4FJCRHI.jpg" alt="El botín " class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 7.0</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">El botín </div>
+                </div>
+            </div>
+            <!-- Película 6 -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="¡Ayuda!"
+                 data-year="2026"
+                 data-duration="1:53 min"
+                 data-rating="7.0"
+                 data-description="En el impactante estreno 'Send Help (¡Ayuda!) (2026)', la dirección nos propone una metáfora salvaje sobre la estructura social contemporánea. La trama disecciona la convivencia forzada de dos supervivientes de un accidente aéreo en una isla desierta. La película destaca por su realismo técnico y su guion inteligente, que utiliza el aislamiento para desnudar las personalidades de sus protagonistas. Ella, eficiente y pragmática, se convierte en la líder natural, mientras que él debe lidiar con la pérdida de su autoridad y su propia inutilidad en el mundo salvaje. Esta película explora temas profundos sobre la sociedad, el poder y la supervivencia humana en condiciones extremas."
+                 data-genres='["Comedia", "terror", "Triller"]'
+                 data-driveurl="https://vimeos.net/embed-2jjnlqpc06pr.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/xzM7ixyJvqvW4le3SHYq8JsqGMK.jpg" alt="¡Ayuda!" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 7.0</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">¡Ayuda!</div>
+                </div>
+            </div>
+            <!-- Película 7 -->
+            <div class="movie-item" onclick="showMovieDetails(this)" 
+                 data-title="Gente que conocemos en vacaciones"
+                 data-year="2026"
+                 data-duration="1:56 min"
+                 data-rating="7.2"
+                 data-description="Poppy es espontánea. Alex necesita un plan para todo. Tras años de viajar juntos, estos amigos muy distintos entre sí se preguntan si podrían ser la pareja perfecta."
+                 data-genres='["Comedia", "Drama", "Romance"]'
+                 data-driveurl="https://vimeos.net/embed-gkbhvuyo36dk.html">
+                <div class="movie-poster-container">
+                    <img src="https://www.themoviedb.org/t/p/w1280/lCbXqv2NOFoV8L0dYjcSz64zlUs.jpg" alt="Gente que conocemos en vacaciones" class="movie-poster" loading="lazy">
+                    <div class="movie-year">2026</div>
+                    <div class="movie-rating"><i class="fas fa-star"></i> 7.2</div>
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">Gente que conocemos...</div>
+                </div>
+            </div>
+		 
+         
+     <!-- Modal de película -->
+    <div class="modal" id="details-modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">×</span>
+            <div class="modal-flex">
+                <div class="video-container" id="video-container"></div>
+                <div class="modal-info">
+                    <h2 class="modal-title" id="modal-title"></h2>
+                    <div class="modal-meta">
+                        <span><i class="fas fa-calendar"></i> <span id="modal-year"></span></span>
+                        <span><i class="fas fa-clock"></i> <span id="modal-duration"></span></span>
+                        <span><i class="fas fa-star"></i> <span id="modal-rating"></span></span>
+                    </div>
+                    <div class="genre-tags" id="modal-genres"></div>
+                    <div class="modal-description">
+                        <div class="description-text" id="modal-description"></div>
+                        <button class="show-more-btn" id="show-more-btn" style="display: none;">
+                            <span>Ver más</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+
+                    <!-- Sección de recomendaciones aleatorias (datos tomados directamente del DOM) -->
+                    <div class="recommendation-section" id="rec-section">
+                        <div class="recommendation-title">
+                            <i class="fas fa-thumbs-up"></i> Quizás te interese
+                        </div>
+                        <div class="horizontal-scroll" id="horizontal-rec-list">
+                            <!-- Las recomendaciones se generan dinámicamente desde el DOM -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== FUNCIONES PARA RECOMENDACIONES DESDE EL DOM ==========
+        
+        // Obtener todas las películas desde el grid del content-container
+        function obtenerTodasLasPeliculasDesdeDOM() {
+            const movies = [];
+            const movieItems = document.querySelectorAll('.movie-item');
+            
+            movieItems.forEach(item => {
+                // Verificar que tenga los datos necesarios
+                if (item.getAttribute('data-title')) {
+                    let posterUrl = '';
+                    const posterImg = item.querySelector('.movie-poster');
+                    if (posterImg) {
+                        posterUrl = posterImg.getAttribute('src');
+                    }
+                    
+                    const pelicula = {
+                        title: item.getAttribute('data-title'),
+                        year: item.getAttribute('data-year') || 'Desconocido',
+                        rating: item.getAttribute('data-rating') || 'N/A',
+                        duration: item.getAttribute('data-duration') || 'N/A',
+                        description: item.getAttribute('data-description') || 'Sin descripción disponible.',
+                        genres: JSON.parse(item.getAttribute('data-genres') || '[]'),
+                        driveurl: item.getAttribute('data-driveurl') || '',
+                        poster: posterUrl || 'https://via.placeholder.com/100x150?text=No+Poster'
+                    };
+                    movies.push(pelicula);
+                }
+            });
+            
+            return movies;
+        }
+        
+        // Obtener recomendaciones aleatorias (excluyendo la película actual)
+        function getRandomRecommendationsFromDOM(excludeTitle = null) {
+            let peliculasDisponibles = obtenerTodasLasPeliculasDesdeDOM();
+            
+            // Excluir la película actual si se especifica
+            if (excludeTitle) {
+                peliculasDisponibles = peliculasDisponibles.filter(p => p.title !== excludeTitle);
+            }
+            
+            // Si no hay películas, retornar array vacío
+            if (peliculasDisponibles.length === 0) return [];
+            
+            // Cantidad a mostrar (máximo 6)
+            const cantidadAMostrar = Math.min(6, peliculasDisponibles.length);
+            
+            // Mezclar aleatoriamente (Fisher-Yates)
+            for (let i = peliculasDisponibles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [peliculasDisponibles[i], peliculasDisponibles[j]] = [peliculasDisponibles[j], peliculasDisponibles[i]];
+            }
+            
+            return peliculasDisponibles.slice(0, cantidadAMostrar);
+        }
+        
+        // Renderizar recomendaciones aleatorias en el modal
+        function renderRandomRecommendationsFromDOM(currentTitle) {
+            const recContainer = document.getElementById('horizontal-rec-list');
+            if (!recContainer) return;
+            
+            const randomRecs = getRandomRecommendationsFromDOM(currentTitle);
+            
+            recContainer.innerHTML = '';
+            
+            if (randomRecs.length === 0) {
+                recContainer.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: var(--text-color);">
+                        <i class="fas fa-film"></i> No hay más películas disponibles
+                    </div>
+                `;
+                return;
+            }
+            
+            randomRecs.forEach(rec => {
+                const card = document.createElement('div');
+                card.className = 'rec-movie-card';
+                
+                card.innerHTML = `
+                    <img src="${rec.poster}" class="rec-poster" alt="${rec.title}" loading="lazy" 
+                         onerror="this.src='https://via.placeholder.com/100x150?text=${encodeURIComponent(rec.title)}'">
+                    <div class="rec-year">${rec.year}</div>
+                    <div class="rec-rating"><i class="fas fa-star"></i> ${rec.rating}</div>
+                `;
+                
+                card.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openRecommendedMovie(rec);
+                });
+                
+                recContainer.appendChild(card);
+            });
+        }
+        
+        // Función para abrir película desde recomendación
+        function openRecommendedMovie(recMovie) {
+            loadGoogleDriveVideo(recMovie.driveurl);
+            document.getElementById('modal-title').textContent = recMovie.title;
+            document.getElementById('modal-year').textContent = recMovie.year;
+            document.getElementById('modal-duration').textContent = recMovie.duration;
+            document.getElementById('modal-rating').textContent = recMovie.rating;
+            document.getElementById('modal-description').textContent = recMovie.description;
+            
+            const genreContainer = document.getElementById('modal-genres');
+            genreContainer.innerHTML = '';
+            recMovie.genres.forEach(g => {
+                const tag = document.createElement('div');
+                tag.className = 'genre-tag';
+                tag.textContent = g;
+                genreContainer.appendChild(tag);
+            });
+            
+            const descElem = document.getElementById('modal-description');
+            descElem.classList.remove('expanded');
+            const showBtn = document.getElementById('show-more-btn');
+            showBtn.style.display = 'none';
+            showBtn.innerHTML = '<span>Ver más</span><i class="fas fa-chevron-down"></i>';
+            
+            setTimeout(() => {
+                const lineHeight = parseFloat(window.getComputedStyle(descElem).lineHeight) || 20;
+                const maxHeight = lineHeight * 3;
+                if (descElem.scrollHeight > maxHeight + 5) {
+                    showBtn.style.display = 'inline-flex';
+                }
+            }, 20);
+            
+            // Actualizar recomendaciones basadas en la nueva película
+            renderRandomRecommendationsFromDOM(recMovie.title);
+            
+            if (modal.style.display !== 'block') {
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        // ========== FUNCIONES AUXILIARES ==========
+        
+        function convertGoogleDriveUrl(url) {
+            if (!url) return '';
+            if (url.includes('/preview')) return url;
+            if (url.includes('drive.google.com/file/d/')) {
+                const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) return `https://drive.google.com/file/d/${match[1]}/preview`;
+            }
+            return url;
+        }
+        
+        function loadGoogleDriveVideo(driveUrl) {
+            const container = document.getElementById('video-container');
+            container.innerHTML = '';
+            if (!driveUrl || driveUrl.trim() === '') {
+                container.innerHTML = `
+                    <div style="width:100%;height:300px;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;">
+                        <i class="fas fa-video-slash" style="font-size:2rem;margin-bottom:10px;"></i>
+                        <p>Video no disponible para esta película</p>
+                    </div>
+                `;
+                return;
+            }
+            const embedUrl = convertGoogleDriveUrl(driveUrl);
+            const iframe = document.createElement('iframe');
+            iframe.src = embedUrl;
+            iframe.allow = "autoplay; encrypted-media; fullscreen";
+            iframe.title = "Reproductor";
+            iframe.style.width = "100%";
+            iframe.style.height = "300px";
+            iframe.style.border = "none";
+            iframe.onerror = () => {
+                container.innerHTML = '<div style="background:#000;height:300px;display:flex;align-items:center;justify-content:center;color:red">Error al cargar el video</div>';
+            };
+            container.appendChild(iframe);
+        }
+        
+        // Función principal que se llama al hacer clic en cualquier película de la grilla
+        function showMovieDetails(element) {
+            const title = element.getAttribute('data-title');
+            const year = element.getAttribute('data-year');
+            const duration = element.getAttribute('data-duration');
+            const rating = element.getAttribute('data-rating');
+            const description = element.getAttribute('data-description');
+            const genres = JSON.parse(element.getAttribute('data-genres'));
+            const driveUrl = element.getAttribute('data-driveurl');
+            
+            loadGoogleDriveVideo(driveUrl);
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-year').textContent = year;
+            document.getElementById('modal-duration').textContent = duration;
+            document.getElementById('modal-rating').textContent = rating;
+            document.getElementById('modal-description').textContent = description;
+            
+            const genreContainer = document.getElementById('modal-genres');
+            genreContainer.innerHTML = '';
+            genres.forEach(g => {
+                const tag = document.createElement('div');
+                tag.className = 'genre-tag';
+                tag.textContent = g;
+                genreContainer.appendChild(tag);
+            });
+            
+            // Renderizar recomendaciones aleatorias desde el DOM
+            renderRandomRecommendationsFromDOM(title);
+            
+            const descElem = document.getElementById('modal-description');
+            descElem.classList.remove('expanded');
+            const showBtn = document.getElementById('show-more-btn');
+            showBtn.style.display = 'none';
+            showBtn.innerHTML = '<span>Ver más</span><i class="fas fa-chevron-down"></i>';
+            
+            setTimeout(() => {
+                const lineHeight = parseFloat(window.getComputedStyle(descElem).lineHeight) || 20;
+                const maxHeight = lineHeight * 3;
+                if (descElem.scrollHeight > maxHeight + 5) {
+                    showBtn.style.display = 'inline-flex';
+                }
+            }, 20);
+            
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            history.pushState({ modalOpen: true }, '');
+        }
+        
+        // ========== EVENTOS Y CONFIGURACIÓN INICIAL ==========
+        
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            themeToggle.innerHTML = body.classList.contains('light-theme') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+        });
+        
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-theme');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+        
+        // Búsqueda
+        const searchToggle = document.getElementById('search-toggle-btn');
+        const searchDropdown = document.getElementById('search-dropdown');
+        const searchInput = document.getElementById('search-input-desktop');
+        
+        searchToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            searchDropdown.classList.toggle('active');
+            if (searchDropdown.classList.contains('active')) searchInput.focus();
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!searchToggle.contains(e.target) && !searchDropdown.contains(e.target) && searchDropdown.classList.contains('active')) {
+                searchDropdown.classList.remove('active');
+            }
+        });
+        
+        searchDropdown.addEventListener('click', e => e.stopPropagation());
+        
+        function searchMovies() {
+            const term = searchInput.value.toLowerCase().trim();
+            document.querySelectorAll('.movie-item').forEach(item => {
+                const title = item.getAttribute('data-title').toLowerCase();
+                item.style.display = (term === '' || title.includes(term)) ? 'flex' : 'none';
+            });
+        }
+        
+        searchInput.addEventListener('input', searchMovies);
+        
+        // Modal
+        const modal = document.getElementById('details-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        
+        closeModalBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('video-container').innerHTML = '';
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                document.getElementById('video-container').innerHTML = '';
+            }
+        });
+        
+        window.addEventListener('popstate', () => {
+            if (modal.style.display === 'block') {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                document.getElementById('video-container').innerHTML = '';
+            }
+        });
+        
+        const moreBtn = document.getElementById('show-more-btn');
+        
+        function toggleDescriptionFn() {
+            const descText = document.getElementById('modal-description');
+            const isExpanded = descText.classList.contains('expanded');
+            descText.classList.toggle('expanded');
+            moreBtn.innerHTML = isExpanded ? '<span>Ver más</span><i class="fas fa-chevron-down"></i>' : '<span>Ver menos</span><i class="fas fa-chevron-up"></i>';
+        }
+        
+        moreBtn.addEventListener('click', toggleDescriptionFn);
+        
+        // Exponer función globalmente
+        window.showMovieDetails = showMovieDetails;
+        
+        console.log('✅ Sistema de recomendaciones aleatorias activado. Las recomendaciones se toman directamente del DOM.');
+    </script>
+</body>
+</html>
